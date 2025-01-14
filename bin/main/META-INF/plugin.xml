@@ -1,0 +1,23 @@
+<idea-plugin>
+    <id>com.github.codes2prompt</id>
+    <name>codes2prompt</name>
+    <vendor>github</vendor>
+    <description><![CDATA[
+        一个帮助开发人员快速生成代码相关 Prompt 的插件。
+        <ul>
+            <li>支持从搜索结果中选择文件</li>
+            <li>自动生成文件夹结构</li>
+            <li>生成标准格式的 Prompt</li>
+            <li>估算 Tokens 数量</li>
+        </ul>
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+    </extensions>
+
+    <actions>
+        <!-- 在这里添加插件的动作 -->
+    </actions>
+</idea-plugin> 
