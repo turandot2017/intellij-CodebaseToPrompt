@@ -1,5 +1,6 @@
 package com.github.codes2prompt.ui;
 
+import com.github.codes2prompt.core.PromptGenerator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.psi.PsiFile;
@@ -18,11 +19,13 @@ public class PromptGeneratorDialog extends DialogWrapper {
     private JTextArea promptTextArea;
     private PromptToolbarPanel toolbarPanel;
     private FileTreePanel fileTreePanel;
+    private PromptGenerator promptGenerator;
 
     public PromptGeneratorDialog(Project project, PsiFile[] psiFiles) {
         super(project, true); // true means modal dialog
         this.project = project;
         this.psiFiles = psiFiles;
+        this.promptGenerator = new PromptGenerator(project);
         
         init(); // 初始化对话框
         setTitle("codes2prompt - Prompt 内容生成"); // 设置窗口标题
@@ -46,8 +49,9 @@ public class PromptGeneratorDialog extends DialogWrapper {
         
         // 先设置文件树的回调
         fileTreePanel.setCallback(selectedFiles -> {
-            // TODO: 更新 Prompt 内容
-            // promptTextArea.setText(generatePrompt(selectedFiles));
+            String prompt = promptGenerator.generatePrompt(selectedFiles);
+            promptTextArea.setText(prompt);
+            promptTextArea.setCaretPosition(0); // 滚动到顶部
         });
         
         // 再设置工具栏的回调

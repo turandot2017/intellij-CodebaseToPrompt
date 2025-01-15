@@ -49,6 +49,11 @@ public class FileTreePanel extends JBPanel<FileTreePanel> {
         tree.setRootVisible(false);
         tree.setShowsRootHandles(true);
         
+        // 初始化时展开所有节点
+        expandAll();
+        // 初始化时取消所有选择
+        unselectAll();
+        
         // 添加到面板
         add(new JScrollPane(tree), BorderLayout.CENTER);
     }

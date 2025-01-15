@@ -6,6 +6,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.components.JBPanel;
+import com.intellij.util.ui.JBUI;
+
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -27,8 +29,11 @@ public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
     private void initToolbar() {
         DefaultActionGroup actionGroup = new DefaultActionGroup();
         
+        // 左侧按钮组
+        DefaultActionGroup leftGroup = new DefaultActionGroup();
+        
         // 帮助按钮
-        actionGroup.add(new AnAction("帮助", "查看插件使用说明", AllIcons.Actions.Help) {
+        leftGroup.add(new AnAction("帮助", "查看插件使用说明", AllIcons.Actions.Help) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 showHelpDialog();
@@ -36,10 +41,10 @@ public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
         });
 
         // 分隔符
-        actionGroup.add(Separator.getInstance());
+        leftGroup.add(Separator.getInstance());
 
         // 展开按钮
-        actionGroup.add(new AnAction("展开", "展开所有目录", AllIcons.Actions.Expandall) {
+        leftGroup.add(new AnAction("展开", "展开所有目录", AllIcons.Actions.Expandall) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 if (callback != null) {
@@ -49,7 +54,7 @@ public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
         });
 
         // 折叠按钮
-        actionGroup.add(new AnAction("折叠", "折叠所有目录", AllIcons.Actions.Collapseall) {
+        leftGroup.add(new AnAction("折叠", "折叠所有目录", AllIcons.Actions.Collapseall) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 if (callback != null) {
@@ -59,10 +64,10 @@ public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
         });
 
         // 分隔符
-        actionGroup.add(Separator.getInstance());
+        leftGroup.add(Separator.getInstance());
 
         // 全选按钮
-        actionGroup.add(new AnAction("全选", "选择所有文件", AllIcons.Actions.Selectall) {
+        leftGroup.add(new AnAction("全选", "选择所有文件", AllIcons.Actions.Selectall) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 if (callback != null) {
@@ -72,7 +77,7 @@ public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
         });
 
         // 全不选按钮
-        actionGroup.add(new AnAction("全不选", "取消选择所有文件", AllIcons.Actions.Unselectall) {
+        leftGroup.add(new AnAction("全不选", "取消选择所有文件", AllIcons.Actions.Unselectall) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 if (callback != null) {
@@ -81,11 +86,15 @@ public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
             }
         });
 
-        // 分隔符
-        actionGroup.add(Separator.getInstance());
-
+        // 添加左侧按钮组
+        actionGroup.add(leftGroup);
+        
+        // 添加右对齐分隔符
+        actionGroup.addSeparator();
+        
         // 复制按钮
-        actionGroup.add(new AnAction("复制", "复制到剪贴板", AllIcons.Actions.Copy) {
+        DefaultActionGroup rightGroup = new DefaultActionGroup();
+        AnAction copyAction = new AnAction("复制", "复制到剪贴板", AllIcons.Actions.Copy) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 copyToClipboard();
@@ -96,16 +105,25 @@ public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
                 // 根据是否有内容来启用/禁用复制按钮
                 e.getPresentation().setEnabled(promptTextArea != null && 
                     !promptTextArea.getText().trim().isEmpty());
+                // 设置为主按钮样式
+                e.getPresentation().setText("复制");
+                e.getPresentation().setIcon(AllIcons.Actions.Copy);
+                // e.getPresentation().setPrimaryAction(true);
             }
-        });
+        };
+        rightGroup.add(copyAction);
+        actionGroup.add(rightGroup);
 
         // 创建工具栏
         ActionToolbar toolbar = ActionManager.getInstance()
-            .createActionToolbar("PromptToolbar", actionGroup, true);
+            .createActionToolbar(ActionPlaces.TOOLBAR, actionGroup, true);
         toolbar.setTargetComponent(this);
+        JPanel toolbarPanel = new JBPanel<>(new BorderLayout());
+        toolbarPanel.add(toolbar.getComponent(), BorderLayout.CENTER);
+        toolbarPanel.setBorder(JBUI.Borders.empty(2, 2));
         
         // 添加工具栏到面板
-        add(toolbar.getComponent(), BorderLayout.CENTER);
+        add(toolbarPanel, BorderLayout.CENTER);
     }
 
     private void showHelpDialog() {
