@@ -1,6 +1,7 @@
 package com.github.codes2prompt.ui;
 
 import com.github.codes2prompt.core.PromptGenerator;
+import com.github.codes2prompt.core.TokenCounter;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.psi.PsiFile;
@@ -20,6 +21,7 @@ public class PromptGeneratorDialog extends DialogWrapper {
     private PromptToolbarPanel toolbarPanel;
     private FileTreePanel fileTreePanel;
     private PromptGenerator promptGenerator;
+    private JLabel statusLabel;
 
     public PromptGeneratorDialog(Project project, PsiFile[] psiFiles) {
         super(project, true); // true means modal dialog
@@ -52,6 +54,9 @@ public class PromptGeneratorDialog extends DialogWrapper {
             String prompt = promptGenerator.generatePrompt(selectedFiles);
             promptTextArea.setText(prompt);
             promptTextArea.setCaretPosition(0); // 滚动到顶部
+            
+            // 更新状态栏
+            updateStatusBar(selectedFiles.size(), TokenCounter.estimateTokens(prompt));
         });
         
         // 再设置工具栏的回调
@@ -100,10 +105,39 @@ public class PromptGeneratorDialog extends DialogWrapper {
 
     @Override
     protected JComponent createSouthPanel() {
-        // 创建底部状态栏（将在后续实现）
-        JPanel statusPanel = new JBPanel<>(new BorderLayout());
+        // 创建底部状态栏
+        JPanel statusPanel = new JBPanel<>(new FlowLayout(FlowLayout.LEFT));
         statusPanel.setBorder(JBUI.Borders.empty(5));
+        
+        // 创建状态标签
+        statusLabel = new JLabel();
+        statusLabel.setFont(JBUI.Fonts.label());
+        statusLabel.setBorder(JBUI.Borders.empty(3, 5));
+        statusPanel.add(statusLabel);
+        
+        // 设置初始状态
+        updateStatusBar(0, 0);
+        
         return statusPanel;
+    }
+
+    /**
+     * 更新状态栏显示
+     * @param fileCount 选中的文件数量
+     * @param tokenCount 估算的 Tokens 数量
+     */
+    private void updateStatusBar(int fileCount, int tokenCount) {
+        StringBuilder status = new StringBuilder();
+        status.append("文件数：").append(fileCount);
+        status.append("  |  ");
+        status.append("预计 Tokens 数量：").append(tokenCount);
+        
+        // 如果 Tokens 数量超过一定值，添加警告提示
+        if (tokenCount > 32 * 1024) {
+            status.append(" ⚠️ Tokens 数量较大，请注意拆分");
+        }
+        
+        statusLabel.setText(status.toString());
     }
 
     @Override
