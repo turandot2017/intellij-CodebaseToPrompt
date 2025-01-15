@@ -36,6 +36,8 @@ import com.intellij.usageView.UsageInfo;
 import com.intellij.usages.UsageInfo2UsageAdapter;
 import com.intellij.util.messages.MessageBusConnection;
 
+import com.github.codes2prompt.ui.PromptGeneratorDialog;
+
 public class FindInFilesListener implements ToolWindowManagerListener {
     private static final Logger LOG = Logger.getInstance(FindInFilesListener.class);
 
@@ -123,13 +125,11 @@ public class FindInFilesListener implements ToolWindowManagerListener {
             // 获取 PsiFile 列表
             Set<PsiFile> psiFileSet = getPsiFileList(findPopupPanel);
             if (psiFileSet != null) {
-                for (PsiFile psiFile : psiFileSet) {
-                    VirtualFile virtualFile = psiFile.getVirtualFile();
-                    if (virtualFile != null) {
-                        // System.out.println(virtualFile.getPath());
-                        LOG.info("File: " + virtualFile.getPath());
-                    }
-                }
+                // 将 Set 转换为数组
+                PsiFile[] psiFiles = psiFileSet.toArray(new PsiFile[0]);
+                // 创建并显示对话框
+                PromptGeneratorDialog dialog = new PromptGeneratorDialog(project, psiFiles);
+                dialog.show();
             } else {
                 LOG.warn("Could not retrieve file list.");
             }
