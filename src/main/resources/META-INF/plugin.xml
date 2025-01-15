@@ -14,10 +14,11 @@
 
     <depends>com.intellij.modules.platform</depends>
 
-    <extensions defaultExtensionNs="com.intellij">
-    </extensions>
+    <applicationListeners>
+        <listener class="com.github.codes2prompt.action.FindInFilesListener$App" topic="com.intellij.ide.AppLifecycleListener"/>
+    </applicationListeners>
+
 
     <actions>
-        <!-- 在这里添加插件的动作 -->
     </actions>
 </idea-plugin> 

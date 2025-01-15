@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
-    <!-- 这里将添加插件图标的 SVG 内容 -->
-    <rect x="2" y="2" width="12" height="12" fill="#6E6E6E"/>
-    <text x="4" y="11" fill="#FFFFFF" font-size="8">C2P</text>
+    <!-- 背景矩形 -->
+    <rect x="1" y="1" width="14" height="14" rx="2" fill="#6E6E6E"/>
+    
+    <!-- 代码符号 </> -->
+    <path d="M5 6L3 8L5 10" stroke="#FFFFFF" stroke-width="1.2" fill="none"/>
+    <path d="M11 6L13 8L11 10" stroke="#FFFFFF" stroke-width="1.2" fill="none"/>
+    
+    <!-- 中间的箭头 -->
+    <path d="M7 4L9 12" stroke="#FFFFFF" stroke-width="1.2"/>
 </svg> 
