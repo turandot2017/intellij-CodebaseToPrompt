@@ -41,6 +41,14 @@ public class FileTreePanel extends JBPanel<FileTreePanel> {
                 Object userObject = node.getUserObject();
                 if (userObject instanceof FolderTreeNode) {
                     handleDirectoryNodeStateChange(node, node.isChecked());
+                } else if (userObject instanceof FileTreeNode) {
+                    try {
+                        isBatchUpdate = true;
+                        updateParentNodesState(node);
+                    } finally {
+                        isBatchUpdate = false;
+                        updateCallback();
+                    }
                 } else if (!isBatchUpdate) {
                     updateCallback();
                 }
@@ -260,7 +268,7 @@ public class FileTreePanel extends JBPanel<FileTreePanel> {
             // 更新父节点的状态
             updateParentNodesState(node);
             // 刷新树模型
-            ((DefaultTreeModel) tree.getModel()).nodeChanged(node);
+            ((DefaultTreeModel) tree.getModel()).nodeStructureChanged(node);
         } finally {
             isBatchUpdate = false;
             updateCallback();
@@ -285,34 +293,20 @@ public class FileTreePanel extends JBPanel<FileTreePanel> {
         }
 
         int checkedCount = 0;
-        int enabledCount = 0;
-
-        // 统计选中和启用的子节点数量
         for (int i = 0; i < childCount; i++) {
             CheckedTreeNode child = (CheckedTreeNode) node.getChildAt(i);
             if (child.isChecked()) {
                 checkedCount++;
             }
-            if (child.isEnabled()) {
-                enabledCount++;
-            }
         }
 
-        // 所有子节点都被选中
+        // 更新节点状态
         if (checkedCount == childCount) {
-            node.setEnabled(true);
             node.setChecked(true);
-        }
-        // 没有子节点被选中
-        else if (checkedCount == 0 && enabledCount == childCount) {
-            node.setEnabled(true);
+        } else {
             node.setChecked(false);
         }
-        // 部分子节点被选中
-        else {
-            node.setChecked(false);
-            node.setEnabled(true);  // 保持父节点可用，这样可以进行全选操作
-        }
+        node.setEnabled(true);  // 保持节点始终可用
     }
 
     // 添加新方法：更新所有节点状态
