@@ -25,6 +25,7 @@ public class FileTreePanel extends JBPanel<FileTreePanel> {
     private final CheckboxTree tree;
     private final Map<String, CheckedTreeNode> nodeCache = new HashMap<>();
     private FileTreeCallback callback;
+    private boolean isBatchUpdate = false;
 
     public FileTreePanel(Project project, PsiFile[] psiFiles) {
         super(new BorderLayout());
@@ -37,8 +38,12 @@ public class FileTreePanel extends JBPanel<FileTreePanel> {
         tree = new CheckboxTree(new FileTreeCellRenderer(), root) {
             @Override
             protected void onNodeStateChanged(CheckedTreeNode node) {
-                // 节点状态改变时触发回调
-                updateCallback();
+                Object userObject = node.getUserObject();
+                if (userObject instanceof FolderTreeNode) {
+                    handleDirectoryNodeStateChange(node, node.isChecked());
+                } else if (!isBatchUpdate) {
+                    updateCallback();
+                }
             }
         };
 
@@ -222,18 +227,94 @@ public class FileTreePanel extends JBPanel<FileTreePanel> {
     }
 
     private void setNodesChecked(boolean checked) {
-        CheckedTreeNode root = (CheckedTreeNode) tree.getModel().getRoot();
-        setNodeChecked(root, checked);
-        ((DefaultTreeModel) tree.getModel()).nodeChanged(root);
-        updateCallback();
+        try {
+            isBatchUpdate = true;
+            CheckedTreeNode root = (CheckedTreeNode) tree.getModel().getRoot();
+            setNodeChecked(root, checked);
+            // 更新所有节点的状态
+            updateAllNodesState(root);
+            ((DefaultTreeModel) tree.getModel()).nodeChanged(root);
+        } finally {
+            isBatchUpdate = false;
+            updateCallback();
+        }
     }
 
     private void setNodeChecked(CheckedTreeNode node, boolean checked) {
         node.setChecked(checked);
+        node.setEnabled(true); // 重置启用状态
+
+        // 只处理子节点，不处理父节点
         for (int i = 0; i < node.getChildCount(); i++) {
             if (node.getChildAt(i) instanceof CheckedTreeNode) {
                 setNodeChecked((CheckedTreeNode) node.getChildAt(i), checked);
             }
+        }
+    }
+
+    private void handleDirectoryNodeStateChange(CheckedTreeNode node, boolean checked) {
+        try {
+            isBatchUpdate = true;
+            // 只更新当前目录及其子节点
+            setNodeChecked(node, checked);
+            // 更新父节点的状态
+            updateParentNodesState(node);
+            // 刷新树模型
+            ((DefaultTreeModel) tree.getModel()).nodeChanged(node);
+        } finally {
+            isBatchUpdate = false;
+            updateCallback();
+        }
+    }
+
+    // 添加新方法：更新父节点状态
+    private void updateParentNodesState(CheckedTreeNode node) {
+        CheckedTreeNode parent = (CheckedTreeNode) node.getParent();
+        while (parent != null && parent != tree.getModel().getRoot()) {
+            updateNodeCheckState(parent);
+            ((DefaultTreeModel) tree.getModel()).nodeChanged(parent);
+            parent = (CheckedTreeNode) parent.getParent();
+        }
+    }
+
+    // 添加新方法：更新节点的选中状态
+    private void updateNodeCheckState(CheckedTreeNode node) {
+        int childCount = node.getChildCount();
+        if (childCount == 0) {
+            return;
+        }
+
+        int checkedCount = 0;
+        boolean hasPartiallyChecked = false;
+
+        for (int i = 0; i < childCount; i++) {
+            CheckedTreeNode child = (CheckedTreeNode) node.getChildAt(i);
+            if (child.isChecked()) {
+                checkedCount++;
+            } else if (!child.isEnabled()) {
+                // 处理部分选中状态
+                hasPartiallyChecked = true;
+                break;
+            }
+        }
+
+        if (hasPartiallyChecked || (checkedCount > 0 && checkedCount < childCount)) {
+            // 部分子节点被选中，设置为灰色状态
+            node.setChecked(false);
+            node.setEnabled(false);
+        } else {
+            // 所有子节点状态一致
+            node.setEnabled(true);
+            node.setChecked(checkedCount == childCount);
+        }
+    }
+
+    // 添加新方法：更新所有节点状态
+    private void updateAllNodesState(CheckedTreeNode node) {
+        for (int i = 0; i < node.getChildCount(); i++) {
+            CheckedTreeNode child = (CheckedTreeNode) node.getChildAt(i);
+            updateNodeCheckState(child);
+            updateAllNodesState(child);
         }
     }
 
