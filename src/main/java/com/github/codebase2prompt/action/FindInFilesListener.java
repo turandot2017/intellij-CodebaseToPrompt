@@ -1,4 +1,4 @@
-package com.github.codes2prompt.action;
+package com.github.codebase2prompt.action;
 
 import java.awt.AWTEvent;
 import java.awt.BorderLayout;
@@ -8,9 +8,7 @@ import java.awt.Toolkit;
 import java.awt.event.AWTEventListener;
 import java.awt.event.ContainerEvent;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import javax.swing.JButton;
@@ -25,7 +23,6 @@ import com.intellij.ide.AppLifecycleListener;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
@@ -36,7 +33,7 @@ import com.intellij.usageView.UsageInfo;
 import com.intellij.usages.UsageInfo2UsageAdapter;
 import com.intellij.util.messages.MessageBusConnection;
 
-import com.github.codes2prompt.ui.PromptGeneratorDialog;
+import com.github.codebase2prompt.ui.PromptGeneratorDialog;
 
 public class FindInFilesListener implements ToolWindowManagerListener {
     private static final Logger LOG = Logger.getInstance(FindInFilesListener.class);
@@ -73,7 +70,7 @@ public class FindInFilesListener implements ToolWindowManagerListener {
                     ContainerEvent containerEvent = (ContainerEvent) event;
                     Component child = containerEvent.getChild();
                     if (child instanceof FindPopupPanel) {
-                        LOG.info("FindPopupPanel component detected, adding Code2Prompt button");
+                        LOG.info("FindPopupPanel component detected, adding Codebase2Prompt button");
                         addButtonToFindPopupPanel((FindPopupPanel) child);
                     }
                 }
@@ -101,7 +98,7 @@ public class FindInFilesListener implements ToolWindowManagerListener {
         Component[] components = container.getComponents();
         for (Component component : components) {
             if (component instanceof FindPopupPanel) {
-                LOG.info("Found FindPopupPanel, adding Code2Prompt button");
+                LOG.info("Found FindPopupPanel, adding Codebase2Prompt button");
                 addButtonToFindPopupPanel((FindPopupPanel) component);
                 return;
             }
@@ -118,9 +115,9 @@ public class FindInFilesListener implements ToolWindowManagerListener {
             return;
         }
 
-        JButton myButton = new JButton("Code2Prompt");
+        JButton myButton = new JButton("Codebase2Prompt");
         myButton.addActionListener(event -> {
-            LOG.info("Code2Prompt button clicked");
+            LOG.info("Codebase2Prompt button clicked");
 
             // 获取 PsiFile 列表
             Set<PsiFile> psiFileSet = getPsiFileList(findPopupPanel);
@@ -141,7 +138,7 @@ public class FindInFilesListener implements ToolWindowManagerListener {
             parent.add(myButton, BorderLayout.SOUTH);
             parent.revalidate();
             parent.repaint();
-            LOG.info("Added Code2Prompt button to FindPopupPanel.");
+            LOG.info("Added Codebase2Prompt button to FindPopupPanel.");
         } else {
             LOG.warn("Parent layout is not BorderLayout, cannot add button.");
         }

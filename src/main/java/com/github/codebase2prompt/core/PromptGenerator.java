@@ -1,4 +1,4 @@
-package com.github.codes2prompt.core;
+package com.github.codebase2prompt.core;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;

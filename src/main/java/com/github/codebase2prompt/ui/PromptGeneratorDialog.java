@@ -1,7 +1,7 @@
-package com.github.codes2prompt.ui;
+package com.github.codebase2prompt.ui;
 
-import com.github.codes2prompt.core.PromptGenerator;
-import com.github.codes2prompt.core.TokenCounter;
+import com.github.codebase2prompt.core.PromptGenerator;
+import com.github.codebase2prompt.core.TokenCounter;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.psi.PsiFile;
@@ -30,7 +30,7 @@ public class PromptGeneratorDialog extends DialogWrapper {
         this.promptGenerator = new PromptGenerator(project);
         
         init(); // 初始化对话框
-        setTitle("codes2prompt - Prompt 内容生成"); // 设置窗口标题
+        setTitle("Codebase2Prompt - Prompt 内容生成"); // 设置窗口标题
         setSize(800, 600); // 设置窗口大小
     }
 

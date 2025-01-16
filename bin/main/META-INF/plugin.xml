@@ -1,6 +1,6 @@
 <idea-plugin>
-    <id>com.github.codes2prompt</id>
-    <name>codes2prompt</name>
+    <id>com.github.codebase2prompt</id>
+    <name>Codebase2Prompt</name>
     <vendor>github</vendor>
     <description><![CDATA[
         一个帮助开发人员快速生成代码相关 Prompt 的插件。
@@ -15,7 +15,7 @@
     <depends>com.intellij.modules.platform</depends>
 
     <applicationListeners>
-        <listener class="com.github.codes2prompt.action.FindInFilesListener$App" topic="com.intellij.ide.AppLifecycleListener"/>
+        <listener class="com.github.codebase2prompt.action.FindInFilesListener$App" topic="com.intellij.ide.AppLifecycleListener"/>
     </applicationListeners>
 
 

@@ -1,4 +1,4 @@
-package com.github.codes2prompt.ui;
+package com.github.codebase2prompt.ui;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
@@ -6,16 +6,13 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.CheckboxTree;
 import com.intellij.ui.CheckedTreeNode;
-import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.tree.TreeUtil;
-import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreePath;
+
 import java.awt.*;
 import java.util.*;
 import java.util.List;

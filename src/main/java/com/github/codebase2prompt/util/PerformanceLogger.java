@@ -1,4 +1,4 @@
-package com.github.codes2prompt.util;
+package com.github.codebase2prompt.util;
 
 import com.intellij.openapi.diagnostic.Logger;
 

@@ -1,4 +1,4 @@
-# codes2prompt 插件开发 TODO 列表
+# Codebase2Prompt 插件开发 TODO 列表
 
 ## 1. 项目初始化 ✓
 - [x] 创建 IntelliJ IDEA 插件项目
@@ -7,7 +7,7 @@
   - 设置项目 JDK 为 11 或更高版本
   - 设置项目编码为 UTF-8
 - [x] 配置项目基本信息（plugin.xml）
-  - 设置插件名称: codes2prompt
+  - 设置插件名称: Codebase2Prompt
   - 设置插件版本: 1.0.1
   - 设置插件描述: 一个帮助开发人员快速生成代码相关 Prompt 的插件
   - 设置兼容的 IDE 版本范围: 2021.1+
@@ -24,7 +24,7 @@
 
 ## 2. UI 组件开发
 ### 2.1 主界面按钮 ✓
-- [x] 在 "Find in Files" 界面添加 "codes2prompt" 按钮
+- [x] 在 "Find in Files" 界面添加 "Codebase2Prompt" 按钮
 - [x] 实现基本的文件列表获取功能
 
 ### 2.2 弹出窗口

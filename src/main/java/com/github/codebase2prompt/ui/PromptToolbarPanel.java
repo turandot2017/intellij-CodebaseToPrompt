@@ -1,9 +1,8 @@
-package com.github.codes2prompt.ui;
+package com.github.codebase2prompt.ui;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBUI;
@@ -128,7 +127,7 @@ public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
 
     private void showHelpDialog() {
         String helpContent = 
-            "codes2prompt 插件使用说明\n\n" +
+            "Codebase2Prompt 插件使用说明\n\n" +
             "1. 在左侧目录树中选择需要包含的文件\n" +
             "2. 使用工具栏按钮进行操作：\n" +
             "   - 展开：展开所有目录\n" +
@@ -144,7 +143,7 @@ public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
         Messages.showInfoMessage(
             project,
             helpContent,
-            "codes2prompt 帮助"
+            "Codebase2Prompt 帮助"
         );
     }
 

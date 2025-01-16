@@ -1,4 +1,4 @@
-package com.github.codes2prompt.core;
+package com.github.codebase2prompt.core;
 
 import org.jetbrains.annotations.NotNull;
 
