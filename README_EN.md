@@ -8,7 +8,7 @@ Codebase2Prompt is an IntelliJ IDEA plugin designed to help developers quickly g
 
 This plugin is an IntelliJ IDEA extension inspired by  [CodebaseToPrompt](https://github.com/hello-nerdo/CodebaseToPrompt). It brings the functionality of CodebaseToPrompt directly into your IDE.
 
-![image-20250116114334757](http://yr-pic.yunrong.cn/md/202501161143760.png)
+![image-20250116123539684](http://yr-pic.yunrong.cn/md/202501161235101.png)
 
 ## Features
 

@@ -111,23 +111,16 @@
   - [ ] 语言切换测试
 
 ## 8. 文档编写
-- [ ] 编写中文 README.md
-  - [ ] 项目简介
-  - [ ] 功能特点
-  - [ ] 安装说明
-  - [ ] 使用教程
-  - [ ] 贡献指南
-  - [ ] 许可证信息
-- [ ] 编写英文 README.md
-  - [ ] Project Introduction
-  - [ ] Features
-  - [ ] Installation Guide
-  - [ ] Usage Tutorial
-  - [ ] Contributing Guidelines
-  - [ ] License Information
-- [ ] 编写开发文档
-- [ ] 编写代码注释和文档
-- [ ] 编写用户使用手册
+- [x] 编写中文 README.md
+  - [x] 项目简介
+  - [x] 功能特点
+  - [x] 安装说明
+  - [x] 使用教程
+- [x] 编写英文 README.md
+  - [x] Project Introduction
+  - [x] Features
+  - [x] Installation Guide
+  - [x] Usage Tutorial
 
 ## 9. 插件市场发布准备
 - [ ] 完善插件描述

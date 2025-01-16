@@ -8,7 +8,7 @@ Codebase2Prompt 是一个 IntelliJ IDEA 插件，旨在帮助开发人员快速�
 
 本工具参考 [CodebaseToPrompt](https://github.com/hello-nerdo/CodebaseToPrompt)  的功能，实现 Intellij 的插件版，方便在插件中使用。
 
-![image-20250116114334757](http://yr-pic.yunrong.cn/md/202501161143760.png)
+![image-20250116123539684](http://yr-pic.yunrong.cn/md/202501161235101.png)
 
 
 
