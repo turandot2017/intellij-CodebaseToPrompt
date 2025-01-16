@@ -8,7 +8,7 @@
         
         <p>本工具参考 <a href="https://github.com/hello-nerdo/CodebaseToPrompt">CodebaseToPrompt</a> 的功能，实现 Intellij 的插件版，方便在插件中使用。</p>
         
-        <p><img src="http://yr-pic.yunrong.cn/md/202501161235101.png" alt="plugin screenshot" width="600"/></p>
+        <p><img src="https://yr-pic.yunrong.cn/md/202501161235101.png" alt="plugin screenshot" width="600"/></p>
 
         <h3>主要功能：</h3>
         <ul>
