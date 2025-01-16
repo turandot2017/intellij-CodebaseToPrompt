@@ -277,7 +277,7 @@ public class FileTreePanel extends JBPanel<FileTreePanel> {
         }
     }
 
-    // 添加新方法：更新节点的选中状态
+    // 修改更新节点的选中状态的方法
     private void updateNodeCheckState(CheckedTreeNode node) {
         int childCount = node.getChildCount();
         if (childCount == 0) {
@@ -285,27 +285,33 @@ public class FileTreePanel extends JBPanel<FileTreePanel> {
         }
 
         int checkedCount = 0;
-        boolean hasPartiallyChecked = false;
+        int enabledCount = 0;
 
+        // 统计选中和启用的子节点数量
         for (int i = 0; i < childCount; i++) {
             CheckedTreeNode child = (CheckedTreeNode) node.getChildAt(i);
             if (child.isChecked()) {
                 checkedCount++;
-            } else if (!child.isEnabled()) {
-                // 处理部分选中状态
-                hasPartiallyChecked = true;
-                break;
+            }
+            if (child.isEnabled()) {
+                enabledCount++;
             }
         }
 
-        if (hasPartiallyChecked || (checkedCount > 0 && checkedCount < childCount)) {
-            // 部分子节点被选中，设置为灰色状态
-            node.setChecked(false);
-            node.setEnabled(false);
-        } else {
-            // 所有子节点状态一致
+        // 所有子节点都被选中
+        if (checkedCount == childCount) {
             node.setEnabled(true);
-            node.setChecked(checkedCount == childCount);
+            node.setChecked(true);
+        }
+        // 没有子节点被选中
+        else if (checkedCount == 0 && enabledCount == childCount) {
+            node.setEnabled(true);
+            node.setChecked(false);
+        }
+        // 部分子节点被选中
+        else {
+            node.setChecked(false);
+            node.setEnabled(true);  // 保持父节点可用，这样可以进行全选操作
         }
     }
 
