@@ -23,6 +23,7 @@ import com.intellij.ide.AppLifecycleListener;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
@@ -40,6 +41,7 @@ public class FindInFilesListener implements ToolWindowManagerListener {
 
     private AWTEventListener awtEventListener;
     private final Project project;
+    private boolean buttonAdded = false;
 
     public FindInFilesListener(Project project) {
         this.project = project;
@@ -95,6 +97,7 @@ public class FindInFilesListener implements ToolWindowManagerListener {
 
     // 添加递归搜索方法
     private void findAndAddButton(Container container) {
+
         Component[] components = container.getComponents();
         for (Component component : components) {
             if (component instanceof FindPopupPanel) {
@@ -109,6 +112,9 @@ public class FindInFilesListener implements ToolWindowManagerListener {
     }
 
     private void addButtonToFindPopupPanel(FindPopupPanel findPopupPanel) {
+        // if (buttonAdded) {
+        //     return;
+        // }
         // 确保在 EDT 线程中执行 UI 操作
         if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(() -> addButtonToFindPopupPanel(findPopupPanel));
@@ -142,6 +148,7 @@ public class FindInFilesListener implements ToolWindowManagerListener {
         } else {
             LOG.warn("Parent layout is not BorderLayout, cannot add button.");
         }
+        buttonAdded = true;
     }
 
     private Set<PsiFile> getPsiFileList(FindPopupPanel findPopupPanel) {
@@ -189,15 +196,25 @@ public class FindInFilesListener implements ToolWindowManagerListener {
         return null;
     }
 
-    public static class App implements AppLifecycleListener {
+    // 官方说这是内部API, 不建议使用
+    // public static class App implements AppLifecycleListener {
+    //     @Override
+    //     public void appStarted() {
+    //         for (Project project : ProjectManager.getInstance()
+    //             .getOpenProjects()) {
+    //             MessageBusConnection connection = project.getMessageBus()
+    //                 .connect();
+    //             connection.subscribe(ToolWindowManagerListener.TOPIC, new FindInFilesListener(project));
+    //         }
+    //     }
+    // }
+
+    public static class FindInFilesStartupActivity implements StartupActivity.DumbAware {
         @Override
-        public void appStarted() {
-            for (Project project : ProjectManager.getInstance()
-                .getOpenProjects()) {
-                MessageBusConnection connection = project.getMessageBus()
-                    .connect();
-                connection.subscribe(ToolWindowManagerListener.TOPIC, new FindInFilesListener(project));
-            }
+        public void runActivity(@NotNull Project project) {
+            MessageBusConnection connection = project.getMessageBus().connect();
+            connection.subscribe(ToolWindowManagerListener.TOPIC, new FindInFilesListener(project));
         }
     }
+
 }

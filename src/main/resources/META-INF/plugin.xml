@@ -38,10 +38,13 @@
 
     <depends>com.intellij.modules.platform</depends>
 
-    <applicationListeners>
-        <listener class="com.github.codebase2prompt.action.FindInFilesListener$App" topic="com.intellij.ide.AppLifecycleListener"/>
-    </applicationListeners>
-
+<!-- applicationListeners 在上架时说是内部API, 不建议使用 -->
+<!--    <applicationListeners>-->
+<!--        <listener class="com.github.codebase2prompt.action.FindInFilesListener$App" topic="com.intellij.ide.AppLifecycleListener"/>-->
+<!--    </applicationListeners>-->
+    <extensions defaultExtensionNs="com.intellij">
+        <postStartupActivity implementation="com.github.codebase2prompt.action.FindInFilesListener$FindInFilesStartupActivity"/>
+    </extensions>
     <actions>
     </actions>
 </idea-plugin> 
