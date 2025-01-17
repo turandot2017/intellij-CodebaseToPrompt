@@ -37,6 +37,11 @@ public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
             public void actionPerformed(@NotNull AnActionEvent e) {
                 showHelpDialog();
             }
+
+            @Override
+            public void update(@NotNull AnActionEvent e) {
+                e.getPresentation().setEnabled(true);
+            }
         });
 
         // 分隔符
@@ -50,6 +55,11 @@ public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
                     callback.onExpandAll();
                 }
             }
+
+            @Override
+            public void update(@NotNull AnActionEvent e) {
+                e.getPresentation().setEnabled(true);
+            }
         });
 
         // 折叠按钮
@@ -59,6 +69,10 @@ public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
                 if (callback != null) {
                     callback.onCollapseAll();
                 }
+            }
+            @Override
+            public void update(@NotNull AnActionEvent e) {
+                e.getPresentation().setEnabled(true);
             }
         });
 
@@ -73,6 +87,11 @@ public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
                     callback.onSelectAll();
                 }
             }
+
+            @Override
+            public void update(@NotNull AnActionEvent e) {
+                e.getPresentation().setEnabled(true);
+            }
         });
 
         // 全不选按钮
@@ -82,6 +101,12 @@ public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
                 if (callback != null) {
                     callback.onUnselectAll();
                 }
+
+            }
+
+            @Override
+            public void update(@NotNull AnActionEvent e) {
+                e.getPresentation().setEnabled(true);
             }
         });
 
@@ -101,13 +126,8 @@ public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
 
             @Override
             public void update(@NotNull AnActionEvent e) {
-                // 根据是否有内容来启用/禁用复制按钮
-                e.getPresentation().setEnabled(promptTextArea != null && 
+                e.getPresentation().setEnabled(promptTextArea != null &&
                     !promptTextArea.getText().trim().isEmpty());
-                // 设置为主按钮样式
-                e.getPresentation().setText("复制");
-                e.getPresentation().setIcon(AllIcons.Actions.Copy);
-                // e.getPresentation().setPrimaryAction(true);
             }
         };
         rightGroup.add(copyAction);
@@ -137,8 +157,8 @@ public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
             "   - 复制：将生成的 Prompt 复制到剪贴板\n" +
             "3. 右侧预览区域显示生成的 Prompt 内容\n" +
             "4. 底部显示已选择的文件数量和预计 Tokens\n\n" +
-            "版本：1.0.0\n" +
-            "作者：Your Name";
+            "版本：1.0.3\n" +
+            "作者：Tianhc";
 
         Messages.showInfoMessage(
             project,

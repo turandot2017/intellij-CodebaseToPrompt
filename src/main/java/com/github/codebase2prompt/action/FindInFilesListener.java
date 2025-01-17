@@ -8,6 +8,7 @@ import java.awt.Toolkit;
 import java.awt.event.AWTEventListener;
 import java.awt.event.ContainerEvent;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -18,11 +19,10 @@ import javax.swing.table.DefaultTableModel;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.github.codebase2prompt.ui.PromptGeneratorDialog;
 import com.intellij.find.impl.FindPopupPanel;
-import com.intellij.ide.AppLifecycleListener;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
@@ -34,14 +34,13 @@ import com.intellij.usageView.UsageInfo;
 import com.intellij.usages.UsageInfo2UsageAdapter;
 import com.intellij.util.messages.MessageBusConnection;
 
-import com.github.codebase2prompt.ui.PromptGeneratorDialog;
-
 public class FindInFilesListener implements ToolWindowManagerListener {
     private static final Logger LOG = Logger.getInstance(FindInFilesListener.class);
 
     private AWTEventListener awtEventListener;
     private final Project project;
-    private boolean buttonAdded = false;
+
+
 
     public FindInFilesListener(Project project) {
         this.project = project;
@@ -57,7 +56,7 @@ public class FindInFilesListener implements ToolWindowManagerListener {
         }
     }
 
-    @Override
+
     public void toolWindowShown(@NotNull ToolWindow toolWindow) {
         if ("Find".equals(toolWindow.getId())) {
             LOG.debug("Find window shown");
@@ -112,9 +111,6 @@ public class FindInFilesListener implements ToolWindowManagerListener {
     }
 
     private void addButtonToFindPopupPanel(FindPopupPanel findPopupPanel) {
-        // if (buttonAdded) {
-        //     return;
-        // }
         // 确保在 EDT 线程中执行 UI 操作
         if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(() -> addButtonToFindPopupPanel(findPopupPanel));
@@ -148,31 +144,61 @@ public class FindInFilesListener implements ToolWindowManagerListener {
         } else {
             LOG.warn("Parent layout is not BorderLayout, cannot add button.");
         }
-        buttonAdded = true;
+
     }
 
     private Set<PsiFile> getPsiFileList(FindPopupPanel findPopupPanel) {
         try {
-            // 1. 获取 myResultsPreviewTableModel
-            Field modelField = findFieldInHierarchy(findPopupPanel.getClass(), "myResultsPreviewTableModel");
+            // 1. 先获取 myResultsPreviewTable (兼容 2020.1)
+            Field tableField = findFieldInHierarchy(findPopupPanel.getClass(), "myResultsPreviewTable");
+            if (tableField == null) {
+                LOG.error("Could not find myResultsPreviewTable field in FindPopupPanel or its superclasses");
+                return null;
+            }
+            tableField.setAccessible(true);
+            JComponent table = (JComponent) tableField.get(findPopupPanel);
+
+            // 2. 获取 table 的 model
+            Field modelField = findFieldInHierarchy(table.getClass(), "dataModel");
             if (modelField == null) {
-                LOG.error("Could not find myResultsPreviewTableModel field in FindPopupPanel or its superclasses");
+                LOG.error("Could not find dataModel field in table");
                 return null;
             }
             modelField.setAccessible(true);
-            DefaultTableModel model = (DefaultTableModel) modelField.get(findPopupPanel);
+            DefaultTableModel model = (DefaultTableModel) modelField.get(table);
 
-            // 2. 遍历 model 中的 UsageInfo2UsageAdapter 并使用 HashSet 去重
-            Set<PsiFile> psiFileSet = new HashSet<>(); // 使用 HashSet 存储 PsiFile
+            // 2. 遍历 model 中的数据并使用 HashSet 去重
+            Set<PsiFile> psiFileSet = new HashSet<>();
             for (int i = 0; i < model.getRowCount(); i++) {
                 Object value = model.getValueAt(i, 0);
-                if (value instanceof UsageInfo2UsageAdapter) {
-                    UsageInfo2UsageAdapter usageAdapter = (UsageInfo2UsageAdapter) value;
+                Object valueItem = value;
+
+                // 使用反射检查是否存在 FindPopupItem 类(兼容 2024.1)
+                try {
+                    Class<?> findPopupItemClass = Class.forName("com.intellij.find.impl.FindPopupItem");
+                    if (findPopupItemClass.isInstance(value)) {
+                        // 如果是 FindPopupItem 类型，通过反射获取 usage
+                        Method getUsageMethod = findPopupItemClass.getMethod("getUsage");
+                        valueItem = getUsageMethod.invoke(value);
+                    }
+                } catch (ClassNotFoundException e) {
+                    // FindPopupItem 类不存在，说明是旧版本 IDEA，直接使用原值
+                    valueItem = value;
+                } catch (Exception e) {
+                    LOG.warn("Error handling FindPopupItem", e);
+                    valueItem = value;
+                }
+
+                if (valueItem instanceof UsageInfo2UsageAdapter) {
+                    UsageInfo2UsageAdapter usageAdapter = (UsageInfo2UsageAdapter) valueItem;
                     UsageInfo usageInfo = usageAdapter.getUsageInfo();
                     PsiFile psiFile = usageInfo.getFile();
-
                     if (psiFile != null) {
-                        psiFileSet.add(psiFile); // 添加到 HashSet
+                        psiFileSet.add(psiFile);
+                    }
+                } else {
+                    if (i == 0) {
+                        LOG.warn("Model row class not defined: " + value.getClass().getName());
                     }
                 }
             }
@@ -183,7 +209,6 @@ public class FindInFilesListener implements ToolWindowManagerListener {
         }
         return null;
     }
-
     private Field findFieldInHierarchy(Class<?> startClass, String fieldName) {
         Class<?> currentClass = startClass;
         while (currentClass != null) {

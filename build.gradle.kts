@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "cn.yunrong"
-version = "1.0.2"
+version = "1.0.3"
 
 repositories {
     mavenCentral()
@@ -28,8 +28,8 @@ tasks {
     }
 
     patchPluginXml {
-        sinceBuild.set("211")
-        untilBuild.set("233.*")
+        sinceBuild.set("201")
+        untilBuild.set("243.*")
     }
 
     signPlugin {
