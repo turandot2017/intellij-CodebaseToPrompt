@@ -20,7 +20,6 @@ import javax.swing.table.DefaultTableModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.github.codebase2prompt.ui.PromptGeneratorDialog;
-import com.intellij.find.impl.FindPopupPanel;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupActivity;
@@ -33,9 +32,11 @@ import com.intellij.ui.content.ContentManager;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.usages.UsageInfo2UsageAdapter;
 import com.intellij.util.messages.MessageBusConnection;
+//import  com.intellij.find.impl.FindPopupPanel;
 
 public class FindInFilesListener implements ToolWindowManagerListener {
     private static final Logger LOG = Logger.getInstance(FindInFilesListener.class);
+    private static final String FIND_POPUP_PANEL_CLASS = "com.intellij.find.impl.FindPopupPanel";
 
     private AWTEventListener awtEventListener;
     private final Project project;
@@ -44,6 +45,7 @@ public class FindInFilesListener implements ToolWindowManagerListener {
 
     public FindInFilesListener(Project project) {
         this.project = project;
+        setupWindowListener();
     }
 
     @Override
@@ -52,7 +54,7 @@ public class FindInFilesListener implements ToolWindowManagerListener {
         if (toolWindow != null) {
             LOG.debug("Find toolWindow created");
             // 只要窗口存在就添加监听器
-            setupWindowListener(toolWindow);
+            setupWindowListener();
         }
     }
 
@@ -64,15 +66,15 @@ public class FindInFilesListener implements ToolWindowManagerListener {
         }
     }
 
-    private void setupWindowListener(ToolWindow toolWindow) {
+    private void setupWindowListener() {
         if (awtEventListener == null) {
             awtEventListener = event -> {
                 if (event.getID() == ContainerEvent.COMPONENT_ADDED) {
                     ContainerEvent containerEvent = (ContainerEvent) event;
                     Component child = containerEvent.getChild();
-                    if (child instanceof FindPopupPanel) {
+                    if (isFindPopupPanel(child)) {
                         LOG.info("FindPopupPanel component detected, adding Codebase2Prompt button");
-                        addButtonToFindPopupPanel((FindPopupPanel) child);
+                        addButtonToFindPopupPanel(child);
                     }
                 }
             };
@@ -96,12 +98,11 @@ public class FindInFilesListener implements ToolWindowManagerListener {
 
     // 添加递归搜索方法
     private void findAndAddButton(Container container) {
-
         Component[] components = container.getComponents();
         for (Component component : components) {
-            if (component instanceof FindPopupPanel) {
+            if (isFindPopupPanel(component)) {
                 LOG.info("Found FindPopupPanel, adding Codebase2Prompt button");
-                addButtonToFindPopupPanel((FindPopupPanel) component);
+                addButtonToFindPopupPanel(component);
                 return;
             }
             if (component instanceof Container) {
@@ -110,7 +111,12 @@ public class FindInFilesListener implements ToolWindowManagerListener {
         }
     }
 
-    private void addButtonToFindPopupPanel(FindPopupPanel findPopupPanel) {
+    private boolean isFindPopupPanel(Component component) {
+        return component != null &&
+               component.getClass().getName().equals(FIND_POPUP_PANEL_CLASS);
+    }
+
+    private void addButtonToFindPopupPanel(Component findPopupPanel) {
         // 确保在 EDT 线程中执行 UI 操作
         if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(() -> addButtonToFindPopupPanel(findPopupPanel));
@@ -144,10 +150,9 @@ public class FindInFilesListener implements ToolWindowManagerListener {
         } else {
             LOG.warn("Parent layout is not BorderLayout, cannot add button.");
         }
-
     }
 
-    private Set<PsiFile> getPsiFileList(FindPopupPanel findPopupPanel) {
+    private Set<PsiFile> getPsiFileList(Component findPopupPanel) {
         try {
             // 1. 先获取 myResultsPreviewTable (兼容 2020.1)
             Field tableField = findFieldInHierarchy(findPopupPanel.getClass(), "myResultsPreviewTable");
