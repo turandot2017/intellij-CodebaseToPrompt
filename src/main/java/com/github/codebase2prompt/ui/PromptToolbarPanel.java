@@ -1,5 +1,6 @@
 package com.github.codebase2prompt.ui;
 
+import com.github.codebase2prompt.storage.FileSelectionStorage;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.Project;
@@ -13,6 +14,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.awt.Toolkit;
+import java.util.List;
 
 public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
     private final Project project;
@@ -49,7 +51,21 @@ public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
         // 分隔符
         leftGroup.add(Separator.getInstance());
 
-        // 新增：保存选择按钮
+        // 历史选择按钮
+        leftGroup.add(new AnAction("历史选择", "查看历史选择记录", AllIcons.Actions.ListFiles) {
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+                showHistorySelections(e);
+            }
+
+            @Override
+            public void update(@NotNull AnActionEvent e) {
+                // 始终启用历史选择按钮
+                e.getPresentation().setEnabled(true);
+            }
+        });
+
+        // 保存选择按钮
         leftGroup.add(new AnAction("保存选择", "保存当前选择的文件列表", AllIcons.Actions.MenuSaveall) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
@@ -196,13 +212,46 @@ public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
         }
     }
 
-    // 修改回调接口，添加保存选择的回调方法
+    private void showHistorySelections(AnActionEvent e) {
+        FileSelectionStorage storage = FileSelectionStorage.getInstance(project);
+        List<FileSelectionStorage.FileSelection> selections = storage.getAllSelections();
+        
+        if (selections.isEmpty()) {
+            Messages.showInfoMessage(project, "暂无保存的选择记录", "历史选择");
+            return;
+        }
+
+        DefaultActionGroup historyGroup = new DefaultActionGroup();
+        for (FileSelectionStorage.FileSelection selection : selections) {
+            historyGroup.add(new AnAction(
+                selection.getName(),
+                selection.getDescription(),
+                AllIcons.Actions.MenuOpen
+            ) {
+                @Override
+                public void actionPerformed(@NotNull AnActionEvent event) {
+                    if (callback != null) {
+                        callback.onLoadSelection(selection);
+                    }
+                }
+            });
+        }
+
+        // 显示历史选择菜单
+        ActionPopupMenu popupMenu = ActionManager.getInstance()
+            .createActionPopupMenu(ActionPlaces.TOOLBAR, historyGroup);
+        Component component = e.getInputEvent().getComponent();
+        popupMenu.getComponent().show(component, 0, component.getHeight());
+    }
+
+    // 修改回调接口
     public interface ToolbarCallback {
         void onExpandAll();
         void onCollapseAll();
         void onSelectAll();
         void onUnselectAll();
-        void onSaveSelection(); // 新增：保存选择的回调
+        void onSaveSelection();
+        void onLoadSelection(FileSelectionStorage.FileSelection selection); // 新增：加载选择的回调
     }
 
     private ToolbarCallback callback;

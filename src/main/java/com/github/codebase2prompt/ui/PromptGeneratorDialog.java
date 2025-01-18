@@ -67,7 +67,7 @@ public class PromptGeneratorDialog extends DialogWrapper {
             updateStatusBar(selectedFiles.size(), TokenCounter.estimateTokens(prompt));
         });
         
-        // 再设置工具栏的回调
+        // 修改工具栏的回调实现
         toolbarPanel.setCallback(new PromptToolbarPanel.ToolbarCallback() {
             @Override
             public void onExpandAll() {
@@ -92,6 +92,14 @@ public class PromptGeneratorDialog extends DialogWrapper {
             @Override
             public void onSaveSelection() {
                 saveCurrentSelection();
+            }
+
+            @Override
+            public void onLoadSelection(FileSelectionStorage.FileSelection selection) {
+                fileTreePanel.loadSelection(selection.getFilePaths());
+                Messages.showInfoMessage(project,
+                    String.format("已加载选择：%s", selection.getName()),
+                    "加载成功");
             }
         });
         
@@ -212,12 +220,12 @@ public class PromptGeneratorDialog extends DialogWrapper {
                 String.format("已保存选择：%s", name), 
                 "保存成功");
 
-            // 打印保存的内容用于调试
-            System.out.println("Saved selections: " + storage.getAllSelections().size());
-            for (FileSelectionStorage.FileSelection sel : storage.getAllSelections()) {
-                System.out.println("Name: " + sel.getName());
-                System.out.println("Files: " + sel.getFilePaths());
-            }
+            // // 打印保存的内容用于调试
+            // System.out.println("Saved selections: " + storage.getAllSelections().size());
+            // for (FileSelectionStorage.FileSelection sel : storage.getAllSelections()) {
+            //     System.out.println("Name: " + sel.getName());
+            //     System.out.println("Files: " + sel.getFilePaths());
+            // }
         }
     }
 } 

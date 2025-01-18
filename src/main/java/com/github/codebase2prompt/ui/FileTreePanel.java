@@ -345,4 +345,46 @@ public class FileTreePanel extends JBPanel<FileTreePanel> {
             toolbarPanel.updateFileSelectionState(!selectedFiles.isEmpty());
         }
     }
+
+    // 新增：加载选择记录的方法
+    public void loadSelection(List<String> filePaths) {
+        // 先取消所有选择
+        unselectAll();
+        
+        // 获取项目根路径
+        String projectPath = project.getBasePath();
+        if (projectPath == null) return;
+
+        // 选中指定的文件
+        CheckedTreeNode root = (CheckedTreeNode) tree.getModel().getRoot();
+        for (String relativePath : filePaths) {
+            // 转换为完整路径
+            String fullPath = projectPath + "/" + relativePath;
+            selectNodeByPath(root, fullPath);
+        }
+
+        // 更新树和按钮状态
+        ((DefaultTreeModel) tree.getModel()).nodeStructureChanged(root);
+        updateToolbarButtonState();
+        updateCallback();
+    }
+
+    private void selectNodeByPath(CheckedTreeNode node, String targetPath) {
+        Object userObject = node.getUserObject();
+        if (userObject instanceof FileTreeNode) {
+            FileTreeNode fileNode = (FileTreeNode) userObject;
+            if (fileNode.getFile().getVirtualFile().getPath().equals(targetPath)) {
+                node.setChecked(true);
+                updateParentNodesState(node);
+                return;
+            }
+        }
+
+        // 递归搜索子节点
+        for (int i = 0; i < node.getChildCount(); i++) {
+            if (node.getChildAt(i) instanceof CheckedTreeNode) {
+                selectNodeByPath((CheckedTreeNode) node.getChildAt(i), targetPath);
+            }
+        }
+    }
 } 
