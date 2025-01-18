@@ -55,6 +55,8 @@
 <!--    </applicationListeners>-->
     <extensions defaultExtensionNs="com.intellij">
         <postStartupActivity implementation="com.github.codebase2prompt.action.FindInFilesListener$FindInFilesStartupActivity"/>
+        <projectService 
+            serviceImplementation="com.github.codebase2prompt.storage.FileSelectionStorage"/>
     </extensions>
     <actions>
     </actions>

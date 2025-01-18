@@ -4,11 +4,16 @@ import com.github.codebase2prompt.core.PromptGenerator;
 import com.github.codebase2prompt.core.TokenCounter;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.Nullable;
+import com.github.codebase2prompt.storage.FileSelectionStorage;
+import com.intellij.openapi.vfs.VirtualFile;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.swing.*;
 import java.awt.*;
@@ -86,10 +91,7 @@ public class PromptGeneratorDialog extends DialogWrapper {
 
             @Override
             public void onSaveSelection() {
-                // TODO: 实现保存选择的逻辑
-                // 1. 获取当前选中的文件列表
-                // 2. 弹出保存对话框
-                // 3. 保存选择记录
+                saveCurrentSelection();
             }
         });
         
@@ -172,5 +174,50 @@ public class PromptGeneratorDialog extends DialogWrapper {
     public void setSize(int width, int height) {
         getWindow().setMinimumSize(new Dimension(width, height));
         getWindow().setPreferredSize(new Dimension(width, height));
+    }
+
+    private void saveCurrentSelection() {
+        // 获取当前选中的文件列表
+        List<PsiFile> selectedFiles = fileTreePanel.getSelectedFiles();
+        if (selectedFiles.isEmpty()) {
+            return;
+        }
+
+        // 创建并显示保存对话框
+        SaveSelectionDialog dialog = new SaveSelectionDialog(project);
+        if (dialog.showAndGet()) {
+            // 获取用户输入
+            String name = dialog.getSelectionName();
+            String description = dialog.getSelectionDescription();
+
+            // 转换文件列表为相对路径
+            List<String> filePaths = selectedFiles.stream()
+                .map(file -> {
+                    VirtualFile vFile = file.getVirtualFile();
+                    String fullPath = vFile.getPath();
+                    String projectPath = project.getBasePath();
+                    if (projectPath != null && fullPath.startsWith(projectPath)) {
+                        return fullPath.substring(projectPath.length() + 1);
+                    }
+                    return fullPath;
+                })
+                .collect(Collectors.toList());
+
+            // 保存选择
+            FileSelectionStorage storage = FileSelectionStorage.getInstance(project);
+            storage.saveSelection(name, description, filePaths);
+            
+            // 添加保存成功提示
+            Messages.showInfoMessage(project,
+                String.format("已保存选择：%s", name), 
+                "保存成功");
+
+            // 打印保存的内容用于调试
+            System.out.println("Saved selections: " + storage.getAllSelections().size());
+            for (FileSelectionStorage.FileSelection sel : storage.getAllSelections()) {
+                System.out.println("Name: " + sel.getName());
+                System.out.println("Files: " + sel.getFilePaths());
+            }
+        }
     }
 } 

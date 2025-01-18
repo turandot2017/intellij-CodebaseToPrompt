@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="FileSelectionStorage">
+    <option name="selections">
+      <list>
+        <FileSelection>
+          <option name="createdAt" value="1737192273680" />
+          <option name="description" value="测试保存" />
+          <option name="filePaths">
+            <list>
+              <option value="build.gradle.kts" />
+              <option value="src/main/java/com/github/codebase2prompt/ui/FileTreePanel.java" />
+            </list>
+          </option>
+          <option name="id" value="0ba3ddbf-556d-490d-a18a-0fcd34d27e79" />
+          <option name="name" value="test" />
+          <option name="updatedAt" value="1737192273680" />
+        </FileSelection>
+      </list>
+    </option>
+  </component>
+</project>

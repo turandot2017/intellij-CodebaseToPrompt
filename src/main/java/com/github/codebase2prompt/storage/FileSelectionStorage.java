@@ -1,12 +1,9 @@
 package com.github.codebase2prompt.storage;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
-import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.components.State;
-import com.intellij.openapi.components.Storage;
+import com.intellij.openapi.components.*;
 import com.intellij.openapi.project.Project;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -14,16 +11,30 @@ import java.util.*;
     name = "FileSelectionStorage",
     storages = {@Storage("fileSelections.xml")}
 )
-public class FileSelectionStorage {
-    private List<FileSelection> selections = new ArrayList<>();
+public class FileSelectionStorage implements PersistentStateComponent<FileSelectionStorage.State> {
+    private State myState = new State();
     private final Project project;
+
+    public static class State {
+        public List<FileSelection> selections = new ArrayList<>();
+    }
 
     public FileSelectionStorage(Project project) {
         this.project = project;
     }
 
     public static FileSelectionStorage getInstance(Project project) {
-        return ServiceManager.getService(project, FileSelectionStorage.class);
+        return project.getService(FileSelectionStorage.class);
+    }
+
+    @Override
+    public @Nullable State getState() {
+        return myState;
+    }
+
+    @Override
+    public void loadState(@NotNull State state) {
+        myState = state;
     }
 
     public void saveSelection(String name, String description, List<String> filePaths) {
@@ -35,16 +46,16 @@ public class FileSelectionStorage {
         selection.setCreatedAt(System.currentTimeMillis());
         selection.setUpdatedAt(System.currentTimeMillis());
 
-        selections.add(selection);
+        myState.selections.add(selection);
     }
 
     public boolean isNameExists(String name) {
-        return selections.stream()
+        return myState.selections.stream()
                 .anyMatch(s -> s.getName().equalsIgnoreCase(name.trim()));
     }
 
     public List<FileSelection> getAllSelections() {
-        return new ArrayList<>(selections);
+        return new ArrayList<>(myState.selections);
     }
 
     public static class FileSelection {
