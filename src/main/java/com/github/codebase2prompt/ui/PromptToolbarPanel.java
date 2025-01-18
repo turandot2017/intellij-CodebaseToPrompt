@@ -17,6 +17,8 @@ import java.awt.Toolkit;
 public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
     private final Project project;
     private final JTextArea promptTextArea; // 用于获取和设置 Prompt 内容
+    private boolean hasSelectedFiles = false; // 新增：跟踪是否有文件被选中
+    private ActionToolbar toolbar; // 新增：保存 ActionToolbar 引用
 
     public PromptToolbarPanel(Project project, JTextArea promptTextArea) {
         super(new BorderLayout());
@@ -41,6 +43,25 @@ public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
             @Override
             public void update(@NotNull AnActionEvent e) {
                 e.getPresentation().setEnabled(true);
+            }
+        });
+
+        // 分隔符
+        leftGroup.add(Separator.getInstance());
+
+        // 新增：保存选择按钮
+        leftGroup.add(new AnAction("保存选择", "保存当前选择的文件列表", AllIcons.Actions.MenuSaveall) {
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+                if (callback != null) {
+                    callback.onSaveSelection();
+                }
+            }
+
+            @Override
+            public void update(@NotNull AnActionEvent e) {
+                // 只有当有文件被选中时才启用按钮
+                e.getPresentation().setEnabled(hasSelectedFiles);
             }
         });
 
@@ -133,15 +154,14 @@ public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
         rightGroup.add(copyAction);
         actionGroup.add(rightGroup);
 
-        // 创建工具栏
-        ActionToolbar toolbar = ActionManager.getInstance()
+        // 创建工具栏并保存引用
+        toolbar = ActionManager.getInstance()
             .createActionToolbar(ActionPlaces.TOOLBAR, actionGroup, true);
         toolbar.setTargetComponent(this);
         JPanel toolbarPanel = new JBPanel<>(new BorderLayout());
         toolbarPanel.add(toolbar.getComponent(), BorderLayout.CENTER);
         toolbarPanel.setBorder(JBUI.Borders.empty(2, 2));
         
-        // 添加工具栏到面板
         add(toolbarPanel, BorderLayout.CENTER);
     }
 
@@ -176,17 +196,26 @@ public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
         }
     }
 
-    // 用于设置回调接口
+    // 修改回调接口，添加保存选择的回调方法
     public interface ToolbarCallback {
         void onExpandAll();
         void onCollapseAll();
         void onSelectAll();
         void onUnselectAll();
+        void onSaveSelection(); // 新增：保存选择的回调
     }
 
     private ToolbarCallback callback;
 
     public void setCallback(ToolbarCallback callback) {
         this.callback = callback;
+    }
+
+    // 修改更新方法，使用保存的 toolbar 引用
+    public void updateFileSelectionState(boolean hasSelection) {
+        this.hasSelectedFiles = hasSelection;
+        if (toolbar != null) {
+            toolbar.updateActionsImmediately();
+        }
     }
 } 

@@ -49,6 +49,9 @@ public class PromptGeneratorDialog extends DialogWrapper {
         // 创建文件树面板
         fileTreePanel = new FileTreePanel(project, psiFiles);
         
+        // 建立联动关系
+        fileTreePanel.setToolbarPanel(toolbarPanel);
+        
         // 先设置文件树的回调
         fileTreePanel.setCallback(selectedFiles -> {
             String prompt = promptGenerator.generatePrompt(selectedFiles);
@@ -79,6 +82,14 @@ public class PromptGeneratorDialog extends DialogWrapper {
             @Override
             public void onUnselectAll() {
                 fileTreePanel.unselectAll();
+            }
+
+            @Override
+            public void onSaveSelection() {
+                // TODO: 实现保存选择的逻辑
+                // 1. 获取当前选中的文件列表
+                // 2. 弹出保存对话框
+                // 3. 保存选择记录
             }
         });
         

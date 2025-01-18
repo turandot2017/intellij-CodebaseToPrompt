@@ -23,6 +23,7 @@ public class FileTreePanel extends JBPanel<FileTreePanel> {
     private final Map<String, CheckedTreeNode> nodeCache = new HashMap<>();
     private FileTreeCallback callback;
     private boolean isBatchUpdate = false;
+    private PromptToolbarPanel toolbarPanel;
 
     public FileTreePanel(Project project, PsiFile[] psiFiles) {
         super(new BorderLayout());
@@ -45,9 +46,11 @@ public class FileTreePanel extends JBPanel<FileTreePanel> {
                     } finally {
                         isBatchUpdate = false;
                         updateCallback();
+                        updateToolbarButtonState();
                     }
                 } else if (!isBatchUpdate) {
                     updateCallback();
+                    updateToolbarButtonState();
                 }
             }
         };
@@ -236,12 +239,12 @@ public class FileTreePanel extends JBPanel<FileTreePanel> {
             isBatchUpdate = true;
             CheckedTreeNode root = (CheckedTreeNode) tree.getModel().getRoot();
             setNodeChecked(root, checked);
-            // 更新所有节点的状态
             updateAllNodesState(root);
             ((DefaultTreeModel) tree.getModel()).nodeChanged(root);
         } finally {
             isBatchUpdate = false;
             updateCallback();
+            updateToolbarButtonState();
         }
     }
 
@@ -269,6 +272,7 @@ public class FileTreePanel extends JBPanel<FileTreePanel> {
         } finally {
             isBatchUpdate = false;
             updateCallback();
+            updateToolbarButtonState();
         }
     }
 
@@ -327,6 +331,18 @@ public class FileTreePanel extends JBPanel<FileTreePanel> {
     private void updateCallback() {
         if (callback != null) {
             callback.onSelectionChanged(getSelectedFiles());
+        }
+    }
+
+    public void setToolbarPanel(PromptToolbarPanel toolbarPanel) {
+        this.toolbarPanel = toolbarPanel;
+        updateToolbarButtonState();
+    }
+
+    private void updateToolbarButtonState() {
+        if (toolbarPanel != null) {
+            List<PsiFile> selectedFiles = getSelectedFiles();
+            toolbarPanel.updateFileSelectionState(!selectedFiles.isEmpty());
         }
     }
 } 
