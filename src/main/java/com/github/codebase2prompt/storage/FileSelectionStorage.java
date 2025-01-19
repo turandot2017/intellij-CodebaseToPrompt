@@ -58,6 +58,15 @@ public class FileSelectionStorage implements PersistentStateComponent<FileSelect
         return new ArrayList<>(myState.selections);
     }
 
+    public void deleteSelection(String id) {
+        myState.selections.removeIf(selection -> selection.getId().equals(id));
+    }
+
+    public void updateSelection(String name, String description, List<String> filePaths) {
+        myState.selections.removeIf(s -> s.getName().equalsIgnoreCase(name.trim()));
+        saveSelection(name, description, filePaths);
+    }
+
     public static class FileSelection {
         private String id;
         private String name;

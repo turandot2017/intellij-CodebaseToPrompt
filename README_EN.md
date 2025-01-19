@@ -6,7 +6,7 @@
 
 Codebase2Prompt is an IntelliJ IDEA plugin designed to help developers quickly generate code-related prompts. It intelligently organizes searched code files into structured prompts, facilitating code analysis and problem-solving through Large Language Models (LLMs).
 
-This plugin is an IntelliJ IDEA extension inspired by  [CodebaseToPrompt](https://github.com/hello-nerdo/CodebaseToPrompt). It brings the functionality of CodebaseToPrompt directly into your IDE.
+This plugin is an IntelliJ IDEA extension inspired by [CodebaseToPrompt](https://github.com/hello-nerdo/CodebaseToPrompt). It brings the functionality of CodebaseToPrompt directly into your IDE.
 
 ![image-20250116123539684](http://yr-pic.yunrong.cn/md/202501161235101.png)
 
@@ -19,6 +19,7 @@ This plugin is an IntelliJ IDEA extension inspired by  [CodebaseToPrompt](https:
 - 📋 One-click prompt copying
 - 🌳 Folder structure visualization
 - 🎯 Batch file selection and quick operations
+- 💾 File selection saving and management
 - 💡 Smart tips and user-friendly interface
 
 ## Installation
@@ -44,9 +45,26 @@ This plugin is an IntelliJ IDEA extension inspired by  [CodebaseToPrompt](https:
 ### Button Functions
 
 - **Help**: View detailed usage instructions
+- **History**: Manage saved file selections
+  - Load: Apply a saved file selection
+  - Delete: Remove unwanted selection records
+- **Save Selection**: Save current file selection state
 - **Expand**: Expand all directory nodes
 - **Collapse**: Collapse all directory nodes
 - **Select All**: Select all files
 - **Deselect All**: Cancel all selections
 - **Copy**: Copy the generated prompt to clipboard
+
+### File Selection Management
+
+- **Save Selection**:
+  - After selecting files, click the "Save Selection" button
+  - Enter a name (required) and description (optional)
+  - If the name exists, choose to overwrite or rename
+
+- **History Selection**:
+  - Click "History" button to view saved records
+  - Choose "Load" to apply a historical selection
+  - Choose "Delete" to remove unwanted records
+  - System will show loading status, including successfully loaded files and missing files
 

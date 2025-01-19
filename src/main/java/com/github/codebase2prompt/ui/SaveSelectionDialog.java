@@ -3,6 +3,7 @@ package com.github.codebase2prompt.ui;
 import com.github.codebase2prompt.storage.FileSelectionStorage;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
@@ -18,6 +19,8 @@ public class SaveSelectionDialog extends DialogWrapper {
     private final FileSelectionStorage storage;
     private JBTextField nameField;
     private JTextArea descriptionArea;
+    private boolean isOverwrite = false;
+    private boolean userCancelled = false;
 
     public SaveSelectionDialog(Project project) {
         super(project);
@@ -72,15 +75,38 @@ public class SaveSelectionDialog extends DialogWrapper {
 
     @Override
     protected ValidationInfo doValidate() {
-        // 验证名称是否为空
+        // 重置状态
         if (nameField.getText().trim().isEmpty()) {
+            userCancelled = false;
             return new ValidationInfo("请输入名称", nameField);
         }
         
-        // // 验证名称是否重复
-        // if (storage.isNameExists(nameField.getText().trim())) {
-        //     return new ValidationInfo("该名称已存在", nameField);
-        // }
+        // 检查名称是否重复，如果重复且未确认覆盖，则提示用户
+        if (!isOverwrite && !userCancelled && storage.isNameExists(nameField.getText().trim())) {
+            int result = Messages.showYesNoDialog(
+                project,
+                String.format("选择 %s 已存在，是否覆盖？", nameField.getText().trim()),
+                "确认覆盖",
+                "覆盖",
+                "取消",
+                Messages.getQuestionIcon()
+            );
+            
+            if (result == Messages.YES) {
+                isOverwrite = true;
+                userCancelled = false;
+                return null;
+            } else {
+                userCancelled = true;
+                return new ValidationInfo("请使用其他名称", nameField);
+            }
+        }
+        
+        // 如果用户修改了名称，重置状态
+        if (!storage.isNameExists(nameField.getText().trim())) {
+            isOverwrite = false;
+            userCancelled = false;
+        }
         
         return null;
     }
@@ -91,5 +117,9 @@ public class SaveSelectionDialog extends DialogWrapper {
 
     public String getSelectionDescription() {
         return descriptionArea.getText().trim();
+    }
+
+    public boolean isOverwriteMode() {
+        return isOverwrite;
     }
 } 

@@ -96,10 +96,38 @@ public class PromptGeneratorDialog extends DialogWrapper {
 
             @Override
             public void onLoadSelection(FileSelectionStorage.FileSelection selection) {
-                fileTreePanel.loadSelection(selection.getFilePaths());
+                FileTreePanel.LoadSelectionResult result = fileTreePanel.loadSelection(selection.getFilePaths());
+                
+                StringBuilder message = new StringBuilder();
+                message.append(String.format("已加载选择：%s\n\n", selection.getName()));
+                message.append(String.format("历史选择：%d 项\n", result.getTotalFiles()));
+                message.append(String.format("已选择：%d 项\n", result.getLoadedFiles()));
+                
+                int missingCount = result.getMissingFiles().size();
+                if (missingCount > 0) {
+                    message.append(String.format("未找到：%d 项\n", missingCount));
+                    if (missingCount <= 5) {  // 如果缺失文件较少，显示具体文件
+                        message.append("\n缺失的文件：\n");
+                        for (String file : result.getMissingFiles()) {
+                            message.append("• ").append(file).append("\n");
+                        }
+                    }
+                }
+
+                Messages.showInfoMessage(
+                    project,
+                    message.toString(),
+                    missingCount > 0 ? "加载完成 (部分文件缺失)" : "加载成功"
+                );
+            }
+
+            @Override
+            public void onDeleteSelection(FileSelectionStorage.FileSelection selection) {
+                FileSelectionStorage storage = FileSelectionStorage.getInstance(project);
+                storage.deleteSelection(selection.getId());
                 Messages.showInfoMessage(project,
-                    String.format("已加载选择：%s", selection.getName()),
-                    "加载成功");
+                    String.format("已删除选择：%s", selection.getName()),
+                    "删除成功");
             }
         });
         
@@ -213,19 +241,17 @@ public class PromptGeneratorDialog extends DialogWrapper {
 
             // 保存选择
             FileSelectionStorage storage = FileSelectionStorage.getInstance(project);
-            storage.saveSelection(name, description, filePaths);
-            
-            // 添加保存成功提示
-            Messages.showInfoMessage(project,
-                String.format("已保存选择：%s", name), 
-                "保存成功");
-
-            // // 打印保存的内容用于调试
-            // System.out.println("Saved selections: " + storage.getAllSelections().size());
-            // for (FileSelectionStorage.FileSelection sel : storage.getAllSelections()) {
-            //     System.out.println("Name: " + sel.getName());
-            //     System.out.println("Files: " + sel.getFilePaths());
-            // }
+            if (dialog.isOverwriteMode()) {
+                storage.updateSelection(name, description, filePaths);
+                Messages.showInfoMessage(project,
+                    String.format("已更新选择：%s", name),
+                    "更新成功");
+            } else {
+                storage.saveSelection(name, description, filePaths);
+                Messages.showInfoMessage(project,
+                    String.format("已保存选择：%s", name),
+                    "保存成功");
+            }
         }
     }
 } 

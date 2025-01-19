@@ -193,7 +193,7 @@ public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
             "   - 复制：将生成的 Prompt 复制到剪贴板\n" +
             "3. 右侧预览区域显示生成的 Prompt 内容\n" +
             "4. 底部显示已选择的文件数量和预计 Tokens\n\n" +
-            "版本：1.0.3\n" +
+            "版本：1.0.4\n" +
             "作者：Tianhc";
 
         Messages.showInfoMessage(
@@ -223,11 +223,16 @@ public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
 
         DefaultActionGroup historyGroup = new DefaultActionGroup();
         for (FileSelectionStorage.FileSelection selection : selections) {
-            historyGroup.add(new AnAction(
+            // 为每个选择创建子菜单组
+            DefaultActionGroup selectionGroup = new DefaultActionGroup(
                 selection.getName(),
-                selection.getDescription(),
-                AllIcons.Actions.MenuOpen
-            ) {
+                true  // true 表示这是一个弹出式子菜单
+            );
+            selectionGroup.getTemplatePresentation().setDescription(selection.getDescription());
+            selectionGroup.getTemplatePresentation().setIcon(AllIcons.Actions.ListFiles);
+
+            // 添加加载选项
+            selectionGroup.add(new AnAction("加载", "加载此选择", AllIcons.Actions.MenuOpen) {
                 @Override
                 public void actionPerformed(@NotNull AnActionEvent event) {
                     if (callback != null) {
@@ -235,6 +240,30 @@ public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
                     }
                 }
             });
+
+            // 添加删除选项
+            selectionGroup.add(new AnAction("删除", "删除此选择", AllIcons.Actions.GC) {
+                @Override
+                public void actionPerformed(@NotNull AnActionEvent event) {
+                    // 显示确认对话框
+                    int result = Messages.showYesNoDialog(
+                        project,
+                        String.format("确定要删除选择 %s 吗？", selection.getName()),
+                        "删除确认",
+                        "删除",
+                        "取消",
+                        Messages.getQuestionIcon()
+                    );
+
+                    if (result == Messages.YES) {
+                        if (callback != null) {
+                            callback.onDeleteSelection(selection);
+                        }
+                    }
+                }
+            });
+
+            historyGroup.add(selectionGroup);
         }
 
         // 显示历史选择菜单
@@ -251,7 +280,8 @@ public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
         void onSelectAll();
         void onUnselectAll();
         void onSaveSelection();
-        void onLoadSelection(FileSelectionStorage.FileSelection selection); // 新增：加载选择的回调
+        void onLoadSelection(FileSelectionStorage.FileSelection selection);
+        void onDeleteSelection(FileSelectionStorage.FileSelection selection); // 新增：删除选择的回调
     }
 
     private ToolbarCallback callback;

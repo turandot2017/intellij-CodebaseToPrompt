@@ -12,6 +12,7 @@ import com.intellij.util.ui.tree.TreeUtil;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
 
 import java.awt.*;
 import java.util.*;
@@ -347,44 +348,88 @@ public class FileTreePanel extends JBPanel<FileTreePanel> {
     }
 
     // 新增：加载选择记录的方法
-    public void loadSelection(List<String> filePaths) {
+    public static class LoadSelectionResult {
+        private final int totalFiles;      // 历史选择中的文件总数
+        private final int loadedFiles;     // 成功加载的文件数
+        private final List<String> missingFiles; // 未找到的文件列表
+
+        public LoadSelectionResult(int totalFiles, int loadedFiles, List<String> missingFiles) {
+            this.totalFiles = totalFiles;
+            this.loadedFiles = loadedFiles;
+            this.missingFiles = missingFiles;
+        }
+
+        public int getTotalFiles() { return totalFiles; }
+        public int getLoadedFiles() { return loadedFiles; }
+        public List<String> getMissingFiles() { return missingFiles; }
+    }
+
+    public LoadSelectionResult loadSelection(List<String> filePaths) {
         // 先取消所有选择
         unselectAll();
         
         // 获取项目根路径
         String projectPath = project.getBasePath();
-        if (projectPath == null) return;
+        if (projectPath == null) {
+            return new LoadSelectionResult(filePaths.size(), 0, new ArrayList<>(filePaths));
+        }
+
+        List<String> missingFiles = new ArrayList<>();
+        int loadedCount = 0;
+        Set<CheckedTreeNode> parentsToExpand = new HashSet<>(); // 新增：记录需要展开的父节点
 
         // 选中指定的文件
         CheckedTreeNode root = (CheckedTreeNode) tree.getModel().getRoot();
         for (String relativePath : filePaths) {
             // 转换为完整路径
             String fullPath = projectPath + "/" + relativePath;
-            selectNodeByPath(root, fullPath);
+            if (selectNodeByPath(root, fullPath, parentsToExpand)) { // 修改：传入父节点集合
+                loadedCount++;
+            } else {
+                missingFiles.add(relativePath);
+            }
         }
 
         // 更新树和按钮状态
         ((DefaultTreeModel) tree.getModel()).nodeStructureChanged(root);
+        
+        // 展开所有已选中文件的父节点
+        for (CheckedTreeNode node : parentsToExpand) {
+            TreePath path = new TreePath(((DefaultTreeModel) tree.getModel()).getPathToRoot(node));
+            tree.expandPath(path);
+        }
+
         updateToolbarButtonState();
         updateCallback();
+
+        return new LoadSelectionResult(filePaths.size(), loadedCount, missingFiles);
     }
 
-    private void selectNodeByPath(CheckedTreeNode node, String targetPath) {
+    private boolean selectNodeByPath(CheckedTreeNode node, String targetPath, Set<CheckedTreeNode> parentsToExpand) {
         Object userObject = node.getUserObject();
         if (userObject instanceof FileTreeNode) {
             FileTreeNode fileNode = (FileTreeNode) userObject;
             if (fileNode.getFile().getVirtualFile().getPath().equals(targetPath)) {
                 node.setChecked(true);
+                // 记录所有父节点，以便后续展开
+                CheckedTreeNode parent = (CheckedTreeNode) node.getParent();
+                while (parent != null && parent != tree.getModel().getRoot()) {
+                    parentsToExpand.add(parent);
+                    parent = (CheckedTreeNode) parent.getParent();
+                }
                 updateParentNodesState(node);
-                return;
+                return true;
             }
         }
 
         // 递归搜索子节点
         for (int i = 0; i < node.getChildCount(); i++) {
             if (node.getChildAt(i) instanceof CheckedTreeNode) {
-                selectNodeByPath((CheckedTreeNode) node.getChildAt(i), targetPath);
+                if (selectNodeByPath((CheckedTreeNode) node.getChildAt(i), targetPath, parentsToExpand)) {
+                    return true;
+                }
             }
         }
+        return false;
     }
 } 
