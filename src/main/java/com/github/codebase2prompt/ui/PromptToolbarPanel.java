@@ -60,13 +60,12 @@ public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
 
             @Override
             public void update(@NotNull AnActionEvent e) {
-                // 始终启用历史选择按钮
                 e.getPresentation().setEnabled(true);
             }
         });
 
         // 保存选择按钮
-        leftGroup.add(new AnAction("保存选择", "保存当前选择的文件列表", AllIcons.Actions.MenuSaveall) {
+        leftGroup.add(new AnAction("保存选择", "保存当前选择的文件列表", AllIcons.Actions.Menu_saveall) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 if (callback != null) {
@@ -76,7 +75,6 @@ public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
 
             @Override
             public void update(@NotNull AnActionEvent e) {
-                // 只有当有文件被选中时才启用按钮
                 e.getPresentation().setEnabled(hasSelectedFiles);
             }
         });
@@ -223,16 +221,15 @@ public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
 
         DefaultActionGroup historyGroup = new DefaultActionGroup();
         for (FileSelectionStorage.FileSelection selection : selections) {
-            // 为每个选择创建子菜单组
             DefaultActionGroup selectionGroup = new DefaultActionGroup(
                 selection.getName(),
-                true  // true 表示这是一个弹出式子菜单
+                true
             );
             selectionGroup.getTemplatePresentation().setDescription(selection.getDescription());
             selectionGroup.getTemplatePresentation().setIcon(AllIcons.Actions.ListFiles);
 
-            // 添加加载选项
-            selectionGroup.add(new AnAction("加载", "加载此选择", AllIcons.Actions.MenuOpen) {
+            // 加载选项
+            selectionGroup.add(new AnAction("加载", "加载此选择", AllIcons.Actions.Menu_saveall) {
                 @Override
                 public void actionPerformed(@NotNull AnActionEvent event) {
                     if (callback != null) {
@@ -241,8 +238,8 @@ public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
                 }
             });
 
-            // 添加删除选项
-            selectionGroup.add(new AnAction("删除", "删除此选择", AllIcons.Actions.GC) {
+            // 删除选项 - 使用 Cancel 图标替代 Delete
+            selectionGroup.add(new AnAction("删除", "删除此选择", AllIcons.Actions.Cancel) {
                 @Override
                 public void actionPerformed(@NotNull AnActionEvent event) {
                     // 显示确认对话框
