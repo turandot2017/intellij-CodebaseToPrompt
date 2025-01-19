@@ -129,6 +129,13 @@ public class PromptGeneratorDialog extends DialogWrapper {
                     String.format("已删除选择：%s", selection.getName()),
                     "删除成功");
             }
+
+            @Override
+            public List<String> getSelectedFileNames() {
+                return fileTreePanel.getSelectedFiles().stream()
+                    .map(file -> file.getName())
+                    .collect(Collectors.toList());
+            }
         });
         
         mainPanel.add(toolbarPanel, BorderLayout.NORTH);

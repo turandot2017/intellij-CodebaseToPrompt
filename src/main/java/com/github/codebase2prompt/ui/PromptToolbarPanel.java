@@ -160,8 +160,28 @@ public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
         // 添加右对齐分隔符
         actionGroup.addSeparator();
         
-        // 复制按钮
+        // 添加右侧按钮组
         DefaultActionGroup rightGroup = new DefaultActionGroup();
+
+        // 添加 @复制 按钮
+        AnAction atCopyAction = new AnAction("@文件列表复制", "复制文件名列表 (@file1 @file2...)", AllIcons.Actions.AddToDictionary) {
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+                copyFileNamesToClipboard();
+            }
+
+            @Override
+            public void update(@NotNull AnActionEvent e) {
+                // 只有在有选中文件时才启用
+                e.getPresentation().setEnabled(hasSelectedFiles);
+            }
+        };
+        rightGroup.add(atCopyAction);
+
+        // 添加分隔符
+        rightGroup.add(Separator.getInstance());
+
+        // 原有的复制按钮
         AnAction copyAction = new AnAction("复制", "复制到剪贴板", AllIcons.Actions.Copy) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
@@ -197,9 +217,11 @@ public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
             "   - 折叠：折叠所有目录\n" +
             "   - 全选：选择所有文件\n" +
             "   - 全不选：取消选择所有文件\n" +
+            "   - @复制：文件列表复制到剪贴板\n" +
             "   - 复制：将生成的 Prompt 复制到剪贴板\n" +
             "3. 右侧预览区域显示生成的 Prompt 内容\n" +
-            "4. 底部显示已选择的文件数量和预计 Tokens\n\n" +
+            "4. 底部显示已选择的文件数量和预计 Tokens\n" +
+            "5. 选择列表管理\n\n" +
             "版本：1.0.4\n" +
             "作者：Tianhc";
 
@@ -287,6 +309,33 @@ public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
         popupMenu.getComponent().show(component, 0, component.getHeight());
     }
 
+    // 新增：复制文件名列表的方法
+    private void copyFileNamesToClipboard() {
+        if (callback == null) return;
+
+        List<String> fileNames = callback.getSelectedFileNames();
+        if (fileNames.isEmpty()) {
+            Messages.showInfoMessage(project, "未选择任何文件", "复制失败");
+            return;
+        }
+
+        // 构建 @file1 @file2 ... 格式的字符串
+        StringBuilder content = new StringBuilder();
+        for (String fileName : fileNames) {
+            if (content.length() > 0) {
+                content.append(" ");
+            }
+            content.append("@").append(fileName);
+        }
+
+        // 复制到剪贴板
+        StringSelection selection = new StringSelection(content.toString());
+        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selection, selection);
+        Messages.showInfoMessage(project, 
+            String.format("已复制 %d 个文件名到剪贴板", fileNames.size()), 
+            "复制成功");
+    }
+
     // 修改回调接口
     public interface ToolbarCallback {
         void onExpandAll();
@@ -296,6 +345,7 @@ public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
         void onSaveSelection();
         void onLoadSelection(FileSelectionStorage.FileSelection selection);
         void onDeleteSelection(FileSelectionStorage.FileSelection selection); // 新增：删除选择的回调
+        List<String> getSelectedFileNames(); // 新增：获取选中文件的文件名列表
     }
 
     private ToolbarCallback callback;
