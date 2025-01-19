@@ -14,6 +14,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.awt.Toolkit;
+import java.lang.reflect.Method;
 import java.util.List;
 
 public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
@@ -64,8 +65,16 @@ public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
             }
         });
 
-        // 保存选择按钮
-        leftGroup.add(new AnAction("保存选择", "保存当前选择的文件列表", AllIcons.Actions.Menu_saveall) {
+        // 兼容性
+        Icon saveIcon;
+        try {
+            // 尝试使用新版本的图标
+            saveIcon = (Icon) AllIcons.Actions.class.getField("MenuSaveall").get(null);
+        } catch (Exception e) {
+            // 如果获取失败，使用旧版本的图标
+            saveIcon = null;
+        }
+        leftGroup.add(new AnAction("保存选择", "保存当前选择的文件列表", saveIcon) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 if (callback != null) {
@@ -218,7 +227,14 @@ public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
             Messages.showInfoMessage(project, "暂无保存的选择记录", "历史选择");
             return;
         }
-
+        Icon saveIcon;
+        try {
+            // 尝试使用新版本的图标
+            saveIcon = (Icon) AllIcons.Actions.class.getField("Menu_saveall").get(null);
+        } catch (Exception ex) {
+            // 如果获取失败，使用旧版本的图标
+            saveIcon = null;
+        }
         DefaultActionGroup historyGroup = new DefaultActionGroup();
         for (FileSelectionStorage.FileSelection selection : selections) {
             DefaultActionGroup selectionGroup = new DefaultActionGroup(
@@ -229,7 +245,8 @@ public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
             selectionGroup.getTemplatePresentation().setIcon(AllIcons.Actions.ListFiles);
 
             // 加载选项
-            selectionGroup.add(new AnAction("加载", "加载此选择", AllIcons.Actions.Menu_saveall) {
+
+            selectionGroup.add(new AnAction("加载", "加载此选择", AllIcons.Actions.InSelection) {
                 @Override
                 public void actionPerformed(@NotNull AnActionEvent event) {
                     if (callback != null) {
@@ -287,11 +304,24 @@ public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
         this.callback = callback;
     }
 
-    // 修改更新方法，使用保存的 toolbar 引用
+    // 修改更新方法，使用新的 API
     public void updateFileSelectionState(boolean hasSelection) {
         this.hasSelectedFiles = hasSelection;
         if (toolbar != null) {
-            toolbar.updateActionsImmediately();
+            updateToolbarActionsReflectively(toolbar);
+            // 有兼容问题, updateActionsImmediately 在 IDEA 2024版本已被弃用
+            // toolbar.updateActionsImmediately();
+        }
+    }
+
+    private void updateToolbarActionsReflectively(ActionToolbar toolbar) {
+        try {
+            Method updateMethod = ActionToolbar.class.getMethod("updateActionsImmediately");
+            updateMethod.invoke(toolbar);
+        } catch (Exception e) {
+            // 如果反射调用失败，可以选择忽略异常或记录日志
+            // 这里也可以考虑使用新的异步方法作为备选
+            // toolbar.updateActionsAsync();
         }
     }
 } 
