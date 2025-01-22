@@ -4,11 +4,43 @@
     <vendor url="https://github.com/turandot2017/intellij-CodebaseToPrompt">github</vendor>
     <description><![CDATA[
         <h2>Codebase2Prompt</h2>
-        <p>一个帮助开发人员快速生成代码相关 Prompt 的插件。它能够将搜索到的代码文件智能地组织成结构化的提示信息，方便在大型语言模型(LLM)中进行代码分析和问题咨询。</p>
-        
-        <p>本工具参考 <a href="https://github.com/hello-nerdo/CodebaseToPrompt">CodebaseToPrompt</a> 的功能，实现 Intellij 的插件版，方便在插件中使用。</p>
-        
+        <p>A plugin that helps developers quickly generate code-related prompts. It intelligently organizes searched code files into structured prompts, facilitating code analysis and problem consultation in Large Language Models (LLMs).</p>
+
+        <p>This tool is inspired by <a href="https://github.com/hello-nerdo/CodebaseToPrompt">CodebaseToPrompt</a>, implemented as an IntelliJ plugin for convenient use within the IDE.</p>
+
         <p><img src="https://yr-pic.yunrong.cn/md/202501161235101.png" alt="plugin screenshot" width="600"/></p>
+
+        <h3>Key Features:</h3>
+        <ul>
+            <li>🔍 Seamless integration with IDEA's "Find in Files" functionality</li>
+            <li>📁 Interactive file selection with directory tree view</li>
+            <li>🔄 Real-time generation of formatted prompts</li>
+            <li>📊 Automatic token usage estimation</li>
+            <li>📋 One-click copying of generated prompts and file lists</li>
+            <li>🌳 Folder structure visualization</li>
+            <li>🎯 Batch file selection and quick operations</li>
+            <li>💡 Smart suggestions and user-friendly interface</li>
+        </ul>
+
+        <h3>How to Use:</h3>
+        <ol>
+            <li>Use "Find in Files" in IDEA to search for relevant code</li>
+            <li>Click the "Codebase2Prompt" button in the search results interface</li>
+            <li>Select the files you want to include in the popup window</li>
+            <li>Click the copy button to get the generated prompt</li>
+            <li>Paste the prompt into your LLM chat window</li>
+        </ol>
+
+        <p>Source code: <a href="https://github.com/turandot2017/intellij-CodebaseToPrompt">https://github.com/turandot2017/intellij-CodebaseToPrompt</a></p>
+
+        <p>For issues or suggestions, please submit an issue or pull request on GitHub.</p>
+
+        <hr/>
+
+        <h2>中文说明</h2>
+        <p>一个帮助开发人员快速生成代码相关 Prompt 的插件。它能够将搜索到的代码文件智能地组织成结构化的提示信息，方便在大型语言模型(LLM)中进行代码分析和问题咨询。</p>
+
+        <p>本工具参考 <a href="https://github.com/hello-nerdo/CodebaseToPrompt">CodebaseToPrompt</a> 的功能，实现 Intellij 的插件版，方便在插件中使用。</p>
 
         <h3>主要功能：</h3>
         <ul>
@@ -31,12 +63,32 @@
             <li>将 Prompt 粘贴到 LLM 对话窗口中使用</li>
         </ol>
 
-        <p>项目源码: <a href="https://github.com/turandot2017/intellij-CodebaseToPrompt">https://github.com/turandot2017/intellij-CodebaseToPrompt</a></p>
-        
         <p>如有问题或建议，欢迎在 GitHub 上提交 issue 或 pull request。</p>
     ]]></description>
 
     <change-notes><![CDATA[
+        <h3>Release Notes:</h3>
+        <ul>
+            <li><b>V1.0.4</b>
+                <ul>
+                    <li>Added file selection management features:</li>
+                    <ul>
+                        <li>Support saving current file selection with name and description</li>
+                        <li>View and manage historical selection records</li>
+                        <li>One-click loading of historical selections</li>
+                        <li>Delete unwanted selection records</li>
+                    </ul>
+                </ul>
+            </li>
+            <li><b>V1.0.3</b>
+                <ul>
+                    <li>Fixed version compatibility issues for IDEA 2020.1~2024.3</li>
+                </ul>
+            </li>
+        </ul>
+
+        <hr/>
+
         <h3>更新日志:</h3>
         <ul>
             <li><b>V1.0.4</b>
