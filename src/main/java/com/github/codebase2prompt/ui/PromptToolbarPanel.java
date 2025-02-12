@@ -7,6 +7,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBUI;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.application.ApplicationManager;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -19,14 +21,14 @@ import java.util.List;
 
 public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
     private final Project project;
-    private final JTextArea promptTextArea; // 用于获取和设置 Prompt 内容
-    private boolean hasSelectedFiles = false; // 新增：跟踪是否有文件被选中
-    private ActionToolbar toolbar; // 新增：保存 ActionToolbar 引用
+    private final Editor editor;
+    private boolean hasSelectedFiles = false;
+    private ActionToolbar toolbar;
 
-    public PromptToolbarPanel(Project project, JTextArea promptTextArea) {
+    public PromptToolbarPanel(Project project, Editor editor) {
         super(new BorderLayout());
         this.project = project;
-        this.promptTextArea = promptTextArea;
+        this.editor = editor;
         initToolbar();
     }
 
@@ -190,8 +192,8 @@ public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
 
             @Override
             public void update(@NotNull AnActionEvent e) {
-                e.getPresentation().setEnabled(promptTextArea != null &&
-                    !promptTextArea.getText().trim().isEmpty());
+                e.getPresentation().setEnabled(editor != null && 
+                    !editor.getDocument().getText().trim().isEmpty());
             }
         };
         rightGroup.add(copyAction);
@@ -233,7 +235,7 @@ public class PromptToolbarPanel extends JBPanel<PromptToolbarPanel> {
     }
 
     private void copyToClipboard() {
-        String content = promptTextArea.getText();
+        String content = editor.getDocument().getText();
         if (content != null && !content.trim().isEmpty()) {
             StringSelection selection = new StringSelection(content);
             Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selection, selection);

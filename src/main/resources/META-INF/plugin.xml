@@ -76,8 +76,7 @@
                 <ul>
                     <li>Large file handling optimization:</li>
                     <ul>
-                        <li>Added file size limit to prevent UI freezing when processing large files</li>
-                        <li>Improved performance by automatically excluding oversized files from selection</li>
+                        <li>Enhancement: Integrated IDEA native editor component for Prompt display, significantly improving UI responsiveness</li>
                     </ul>
                 </ul>
             </li>
@@ -107,8 +106,7 @@
                 <ul>
                     <li>大文件处理优化：</li>
                     <ul>
-                        <li>添加文件大小限制，防止处理大文件时界面卡顿</li>
-                        <li>自动过滤超大文件，提升操作流畅度</li>
+                        <li>优化: 采用 IDEA 原生编辑器组件展示 Prompt，显著提升界面响应速度</li>
                     </ul>
                 </ul>
             </li>

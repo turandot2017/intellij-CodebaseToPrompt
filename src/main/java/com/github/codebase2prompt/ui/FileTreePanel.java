@@ -104,9 +104,10 @@ public class FileTreePanel extends JBPanel<FileTreePanel> {
                 // continue;
             }
             // 创建文件节点
-            FileTreeNode fileTreeNode = new FileTreeNode(file, isLargeFile);
+            // FileTreeNode fileTreeNode = new FileTreeNode(file, isLargeFile);
+            FileTreeNode fileTreeNode = new FileTreeNode(file, false);
             CheckedTreeNode fileNode = new CheckedTreeNode(fileTreeNode);
-            fileNode.setEnabled(!isLargeFile); // 大文件禁用选择
+            // fileNode.setEnabled(!isLargeFile); // 大文件禁用选择
 
             String parentPath = getParentPath(relativePath);
             CheckedTreeNode parentNode = nodeCache.get(parentPath);

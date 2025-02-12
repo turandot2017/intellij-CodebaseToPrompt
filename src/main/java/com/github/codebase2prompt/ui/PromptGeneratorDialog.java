@@ -21,6 +21,13 @@ import java.util.stream.Collectors;
 
 import javax.swing.*;
 
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.EditorFactory;
+import com.intellij.openapi.editor.EditorSettings;
+import com.intellij.openapi.editor.ex.EditorEx;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.fileTypes.FileTypes;
 
 import java.awt.*;
 
@@ -28,7 +35,7 @@ public class PromptGeneratorDialog extends DialogWrapper {
     private final Project project;
     private final PsiFile[] psiFiles;
     private JPanel mainPanel;
-    private JTextArea promptTextArea;
+    private Editor editor;
     private PromptToolbarPanel toolbarPanel;
     private FileTreePanel fileTreePanel;
     private PromptGenerator promptGenerator;
@@ -51,12 +58,34 @@ public class PromptGeneratorDialog extends DialogWrapper {
         mainPanel = new JBPanel<>(new BorderLayout());
         mainPanel.setBorder(JBUI.Borders.empty(10));
 
-        // 创建 Prompt 文本区域
-        promptTextArea = new JTextArea();
-        promptTextArea.setEditable(false);
+        // Create Editor instead of JTextArea
+        EditorFactory editorFactory = EditorFactory.getInstance();
+        Document document = editorFactory.createDocument("");
+        editor = editorFactory.createEditor(
+            document,
+            project,
+            FileTypes.PLAIN_TEXT,  // 使用纯文本文件类型
+            true  // 是否只读
+        );
 
-        // 创建工具栏
-        toolbarPanel = new PromptToolbarPanel(project, promptTextArea);
+        // Configure editor settings
+        EditorSettings settings = editor.getSettings();
+        settings.setFoldingOutlineShown(false);
+        settings.setLineNumbersShown(false);
+        settings.setLineMarkerAreaShown(false);
+        settings.setIndentGuidesShown(false);
+        settings.setVirtualSpace(false);
+        settings.setWheelFontChangeEnabled(false);
+        settings.setAdditionalColumnsCount(0);
+        settings.setAdditionalLinesCount(0);
+
+        if (editor instanceof EditorEx) {
+            ((EditorEx) editor).setHorizontalScrollbarVisible(true);
+            ((EditorEx) editor).setVerticalScrollbarVisible(true);
+        }
+
+        // Create toolbar with editor instead of JTextArea
+        toolbarPanel = new PromptToolbarPanel(project, editor);
         // 创建文件树面板
         fileTreePanel = new FileTreePanel(project, psiFiles);
 
@@ -66,8 +95,14 @@ public class PromptGeneratorDialog extends DialogWrapper {
         // 先设置文件树的回调
         fileTreePanel.setCallback(selectedFiles -> {
             String prompt = promptGenerator.generatePrompt(selectedFiles);
-            promptTextArea.setText(prompt);
-            promptTextArea.setCaretPosition(0); // 滚动到顶部
+            // Update editor content instead of JTextArea
+            ApplicationManager.getApplication().runWriteAction(() -> {
+                // 统一处理行分隔符
+                String normalizedText = com.intellij.openapi.util.text.StringUtil.convertLineSeparators(prompt);
+                editor.getDocument().setText(normalizedText);
+            });
+            // Scroll to top
+            editor.getScrollingModel().scrollVertically(0);
             // 更新状态栏
             long t0 = System.currentTimeMillis();
             updateStatusBar(selectedFiles.size(), TokenCounter.estimateTokens(prompt));
@@ -148,9 +183,9 @@ public class PromptGeneratorDialog extends DialogWrapper {
         // 创建左侧面板
         fileTreePanel.setPreferredSize(new Dimension(300, -1));
 
-        // 创建右侧面板
+        // Create right panel with editor
         JPanel rightPanel = new JBPanel<>(new BorderLayout());
-        rightPanel.add(new JBScrollPane(promptTextArea), BorderLayout.CENTER);
+        rightPanel.add(editor.getComponent(), BorderLayout.CENTER);
 
         // 添加分隔面板
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, fileTreePanel, new JBScrollPane(rightPanel));
@@ -264,5 +299,13 @@ public class PromptGeneratorDialog extends DialogWrapper {
                 Messages.showInfoMessage(project, String.format("已保存选择：%s", name), "保存成功");
             }
         }
+    }
+
+    @Override
+    public void dispose() {
+        if (editor != null) {
+            EditorFactory.getInstance().releaseEditor(editor);
+        }
+        super.dispose();
     }
 } 
