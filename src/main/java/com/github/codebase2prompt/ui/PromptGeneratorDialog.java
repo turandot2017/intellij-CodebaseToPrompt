@@ -2,6 +2,7 @@ package com.github.codebase2prompt.ui;
 
 import com.github.codebase2prompt.core.PromptGenerator;
 import com.github.codebase2prompt.core.TokenCounter;
+import com.github.codebase2prompt.util.PerformanceLogger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
@@ -64,7 +65,9 @@ public class PromptGeneratorDialog extends DialogWrapper {
             promptTextArea.setCaretPosition(0); // 滚动到顶部
             
             // 更新状态栏
+            long t0 = System.currentTimeMillis();
             updateStatusBar(selectedFiles.size(), TokenCounter.estimateTokens(prompt));
+            PerformanceLogger.logTime("estimateTokens", t0);
         });
         
         // 修改工具栏的回调实现

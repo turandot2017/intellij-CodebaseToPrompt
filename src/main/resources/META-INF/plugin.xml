@@ -29,6 +29,7 @@
             <li>Select the files you want to include in the popup window</li>
             <li>Click the copy button to get the generated prompt</li>
             <li>Paste the prompt into your LLM chat window</li>
+            <li>Note: Find in Files displays up to 100 matches by default. To adjust this limit, go to Settings > Advanced Settings > Find in Files and change it to 1000.</li>
         </ol>
 
         <p>Source code: <a href="https://github.com/turandot2017/intellij-CodebaseToPrompt">https://github.com/turandot2017/intellij-CodebaseToPrompt</a></p>
@@ -61,6 +62,8 @@
             <li>在弹出窗口中选择需要包含的文件</li>
             <li>点击复制按钮获取生成的 Prompt</li>
             <li>将 Prompt 粘贴到 LLM 对话窗口中使用</li>
+            <li>提示: Find in Files 默认显示 100 条匹配结果。如需调整，可在 Settings > Advanced Settings > Find in Files 中将限制调整为 1000 条。</li>
+
         </ol>
 
         <p>如有问题或建议，欢迎在 GitHub 上提交 issue 或 pull request。</p>
@@ -69,6 +72,15 @@
     <change-notes><![CDATA[
         <h3>Release Notes:</h3>
         <ul>
+            <li><b>V1.0.5</b>
+                <ul>
+                    <li>Large file handling optimization:</li>
+                    <ul>
+                        <li>Added file size limit to prevent UI freezing when processing large files</li>
+                        <li>Improved performance by automatically excluding oversized files from selection</li>
+                    </ul>
+                </ul>
+            </li>
             <li><b>V1.0.4</b>
                 <ul>
                     <li>Added file selection management features:</li>
@@ -91,6 +103,15 @@
 
         <h3>更新日志:</h3>
         <ul>
+            <li><b>V1.0.5</b>
+                <ul>
+                    <li>大文件处理优化：</li>
+                    <ul>
+                        <li>添加文件大小限制，防止处理大文件时界面卡顿</li>
+                        <li>自动过滤超大文件，提升操作流畅度</li>
+                    </ul>
+                </ul>
+            </li>
             <li><b>V1.0.4</b>
                 <ul>
                     <li>新增文件选择管理功能：</li>

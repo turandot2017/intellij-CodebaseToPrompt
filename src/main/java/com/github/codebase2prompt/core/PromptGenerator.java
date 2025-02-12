@@ -1,6 +1,9 @@
 package com.github.codebase2prompt.core;
 
+import com.github.codebase2prompt.util.PerformanceLogger;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
@@ -22,13 +25,16 @@ public class PromptGenerator {
         }
 
         StringBuilder prompt = new StringBuilder();
-        
+        long t0 = System.currentTimeMillis();
         // 1. 生成文件夹结构
         prompt.append(generateFolderStructure(selectedFiles));
         prompt.append("\n\n");
+        PerformanceLogger.logTime("generateFolderStructure", t0);
         
         // 2. 生成文件内容
+        t0 = System.currentTimeMillis();
         prompt.append(generateFileContents(selectedFiles));
+        PerformanceLogger.logTime("generateFileContents", t0);
 
         return prompt.toString();
     }
@@ -71,21 +77,47 @@ public class PromptGenerator {
         StringBuilder contents = new StringBuilder();
         String projectPath = project.getBasePath();
         
+        long totalSize = 0;
+        final long SIZE_LIMIT = 5 * 1024 * 1024; // 5MB limit
+        List<String> processedFiles = new ArrayList<>();
+        
         for (PsiFile file : files) {
             String relativePath = getRelativePath(file.getVirtualFile(), projectPath);
-            contents.append("<document path=\"").append(relativePath).append("\">\n");
             
             try {
-                String content = new String(file.getVirtualFile().contentsToByteArray(), StandardCharsets.UTF_8);
+                byte[] fileContent = file.getVirtualFile().contentsToByteArray();
+                totalSize += fileContent.length;
+                
+                if (totalSize > SIZE_LIMIT) {
+                    // 显示警告对话框
+                    ApplicationManager.getApplication().invokeLater(() -> {
+                        Messages.showWarningDialog(
+                            project,
+                            String.format("Total content size exceeds 5MB limit.\nProcessed %d of %d files.\nSkipped files starting from: %s",
+                                processedFiles.size(),
+                                files.size(),
+                                relativePath),
+                            "Content Size Warning"
+                        );
+                    });
+                    break;
+                }
+                
+                contents.append("<document path=\"").append(relativePath).append("\">\n");
+                String content = new String(fileContent, StandardCharsets.UTF_8);
                 contents.append(content);
                 if (!content.endsWith("\n")) {
                     contents.append("\n");
                 }
+                contents.append("</document>\n\n");
+                
+                processedFiles.add(relativePath);
+                
             } catch (IOException e) {
+                contents.append("<document path=\"").append(relativePath).append("\">\n");
                 contents.append("// Error reading file content: ").append(e.getMessage()).append("\n");
+                contents.append("</document>\n\n");
             }
-            
-            contents.append("</document>\n\n");
         }
         
         return contents.toString();

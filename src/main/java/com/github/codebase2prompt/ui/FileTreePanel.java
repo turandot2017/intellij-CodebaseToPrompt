@@ -1,5 +1,7 @@
 package com.github.codebase2prompt.ui;
 
+import com.github.codebase2prompt.action.FindInFilesListener;
+import com.github.codebase2prompt.util.PerformanceLogger;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -17,8 +19,10 @@ import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+import com.intellij.openapi.diagnostic.Logger;
 
 public class FileTreePanel extends JBPanel<FileTreePanel> {
+    private static final Logger LOG = Logger.getInstance(FileTreePanel.class);
     private final Project project;
     private final CheckboxTree tree;
     private final Map<String, CheckedTreeNode> nodeCache = new HashMap<>();
@@ -32,7 +36,7 @@ public class FileTreePanel extends JBPanel<FileTreePanel> {
 
         // 创建根节点
         CheckedTreeNode root = new CheckedTreeNode(null);
-        
+
         // 创建树
         tree = new CheckboxTree(new FileTreeCellRenderer(), root) {
             @Override
@@ -62,12 +66,12 @@ public class FileTreePanel extends JBPanel<FileTreePanel> {
         // 设置树的属性
         tree.setRootVisible(false);
         tree.setShowsRootHandles(true);
-        
+
         // 初始化时展开所有节点
         expandAll();
         // 初始化时取消所有选择
         unselectAll();
-        
+
         // 添加到面板
         add(new JScrollPane(tree), BorderLayout.CENTER);
     }
@@ -78,7 +82,7 @@ public class FileTreePanel extends JBPanel<FileTreePanel> {
         nodeCache.put("", root);
 
         // 按路径排序
-        Arrays.sort(psiFiles, Comparator.comparing(file -> 
+        Arrays.sort(psiFiles, Comparator.comparing(file ->
             file.getVirtualFile().getPath()));
 
         // 构建树结构
@@ -86,12 +90,21 @@ public class FileTreePanel extends JBPanel<FileTreePanel> {
             VirtualFile vFile = file.getVirtualFile();
             String filePath = vFile.getPath();
             String relativePath = getRelativePath(filePath);
-            
+
             // 创建文件节点的父目录节点
             createParentNodes(relativePath);
-            
+
+            // 检查文件大小
+            boolean isLargeFile = vFile.getLength() > 100 * 1024; // 100KB
+            if (isLargeFile){
+               LOG.warn("file " + filePath + "is too large, skip. size=" + vFile.getLength());
+               // continue;
+            }
             // 创建文件节点
-            CheckedTreeNode fileNode = new CheckedTreeNode(new FileTreeNode(file));
+            FileTreeNode fileTreeNode = new FileTreeNode(file, isLargeFile);
+            CheckedTreeNode fileNode = new CheckedTreeNode(fileTreeNode);
+            fileNode.setEnabled(!isLargeFile); // 大文件禁用选择
+
             String parentPath = getParentPath(relativePath);
             CheckedTreeNode parentNode = nodeCache.get(parentPath);
             parentNode.add(fileNode);
@@ -109,7 +122,7 @@ public class FileTreePanel extends JBPanel<FileTreePanel> {
 
         // 递归创建父目录节点
         createParentNodes(parentPath);
-        
+
         String folderName = getLastPathComponent(parentPath);
         CheckedTreeNode parentNode = new CheckedTreeNode(new FolderTreeNode(folderName));
         String grandParentPath = getParentPath(parentPath);
@@ -121,13 +134,13 @@ public class FileTreePanel extends JBPanel<FileTreePanel> {
     // 自定义树节点渲染器
     private static class FileTreeCellRenderer extends CheckboxTree.CheckboxTreeCellRenderer {
         @Override
-        public void customizeRenderer(JTree tree, Object value, boolean selected, 
+        public void customizeRenderer(JTree tree, Object value, boolean selected,
                                     boolean expanded, boolean leaf, int row, boolean hasFocus) {
             if (!(value instanceof CheckedTreeNode)) return;
-            
+
             CheckedTreeNode node = (CheckedTreeNode) value;
             Object userObject = node.getUserObject();
-            
+
             if (userObject instanceof FileTreeNode) {
                 FileTreeNode fileNode = (FileTreeNode) userObject;
                 getTextRenderer().append(fileNode.getName(), SimpleTextAttributes.REGULAR_ATTRIBUTES);
@@ -135,22 +148,24 @@ public class FileTreePanel extends JBPanel<FileTreePanel> {
             } else if (userObject instanceof FolderTreeNode) {
                 FolderTreeNode folderNode = (FolderTreeNode) userObject;
                 getTextRenderer().append(folderNode.getName(), SimpleTextAttributes.REGULAR_ATTRIBUTES);
-                getTextRenderer().setIcon(expanded ? 
+                getTextRenderer().setIcon(expanded ?
                     AllIcons.Nodes.Folder : AllIcons.Nodes.Folder);
             }
         }
     }
 
     // 文件节点数据类
-    private static class FileTreeNode {
+    public static class FileTreeNode {
         private final PsiFile file;
+        private final boolean isLargeFile;
 
-        public FileTreeNode(PsiFile file) {
+        public FileTreeNode(PsiFile file, boolean isLargeFile) {
             this.file = file;
+            this.isLargeFile = isLargeFile;
         }
 
         public String getName() {
-            return file.getName();
+            return file.getName() + (isLargeFile ? " (too large)" : "");
         }
 
         public Icon getIcon() {
@@ -160,10 +175,14 @@ public class FileTreePanel extends JBPanel<FileTreePanel> {
         public PsiFile getFile() {
             return file;
         }
+
+        public boolean isLargeFile() {
+            return isLargeFile;
+        }
     }
 
     // 文件夹节点数据类
-    private static class FolderTreeNode {
+    public static class FolderTreeNode {
         private final String name;
 
         public FolderTreeNode(String name) {
@@ -203,13 +222,19 @@ public class FileTreePanel extends JBPanel<FileTreePanel> {
     }
 
     private void collectSelectedFiles(CheckedTreeNode node, List<PsiFile> selectedFiles) {
+        PerformanceLogger.traceNode(node, node.isChecked(), "collectSelectedFiles ...");
         if (node.isLeaf() && node.isChecked()) {
+            if (!node.isEnabled() && node.isChecked()){
+                node.setChecked(false);
+                PerformanceLogger.traceNode(node, true, "collectSelectedFiles:数据不正确!");
+                return;
+            }
             Object userObject = node.getUserObject();
             if (userObject instanceof FileTreeNode) {
                 selectedFiles.add(((FileTreeNode) userObject).getFile());
             }
         }
-        
+
         for (int i = 0; i < node.getChildCount(); i++) {
             if (node.getChildAt(i) instanceof CheckedTreeNode) {
                 collectSelectedFiles((CheckedTreeNode) node.getChildAt(i), selectedFiles);
@@ -250,8 +275,19 @@ public class FileTreePanel extends JBPanel<FileTreePanel> {
     }
 
     private void setNodeChecked(CheckedTreeNode node, boolean checked) {
-        node.setChecked(checked);
-        node.setEnabled(true); // 重置启用状态
+        if (!node.isLeaf()) {
+            PerformanceLogger.traceNode(node, true);
+            node.setEnabled(true);
+        } else {
+            if (!node.isEnabled()){
+                PerformanceLogger.traceNode(node, false);
+                node.setChecked(false);
+            } else {
+                PerformanceLogger.traceNode(node, checked);
+                node.setChecked(checked);
+            }
+        }
+
 
         // 只处理子节点，不处理父节点
         for (int i = 0; i < node.getChildCount(); i++) {
@@ -304,11 +340,20 @@ public class FileTreePanel extends JBPanel<FileTreePanel> {
 
         // 更新节点状态
         if (checkedCount == childCount) {
-            node.setChecked(true);
+            if (node.isEnabled()) {
+                PerformanceLogger.traceNode(node, true);
+                node.setChecked(true);
+            } else {
+                PerformanceLogger.traceNode(node, false);
+                node.setChecked(false);
+            }
         } else {
+            PerformanceLogger.traceNode(node, false);
             node.setChecked(false);
         }
-        node.setEnabled(true);  // 保持节点始终可用
+        if (!node.isLeaf()) {
+            node.setEnabled(true);  // 保持节点始终可用
+        }
     }
 
     // 添加新方法：更新所有节点状态
@@ -367,7 +412,7 @@ public class FileTreePanel extends JBPanel<FileTreePanel> {
     public LoadSelectionResult loadSelection(List<String> filePaths) {
         // 先取消所有选择
         unselectAll();
-        
+
         // 获取项目根路径
         String projectPath = project.getBasePath();
         if (projectPath == null) {
@@ -392,7 +437,7 @@ public class FileTreePanel extends JBPanel<FileTreePanel> {
 
         // 更新树和按钮状态
         ((DefaultTreeModel) tree.getModel()).nodeStructureChanged(root);
-        
+
         // 展开所有已选中文件的父节点
         for (CheckedTreeNode node : parentsToExpand) {
             TreePath path = new TreePath(((DefaultTreeModel) tree.getModel()).getPathToRoot(node));
@@ -410,7 +455,13 @@ public class FileTreePanel extends JBPanel<FileTreePanel> {
         if (userObject instanceof FileTreeNode) {
             FileTreeNode fileNode = (FileTreeNode) userObject;
             if (fileNode.getFile().getVirtualFile().getPath().equals(targetPath)) {
-                node.setChecked(true);
+                if (node.isEnabled()) {
+                    PerformanceLogger.traceNode(node, true);
+                    node.setChecked(true);
+                } else {
+                    PerformanceLogger.traceNode(node, false);
+                    node.setChecked(false);
+                }
                 // 记录所有父节点，以便后续展开
                 CheckedTreeNode parent = (CheckedTreeNode) node.getParent();
                 while (parent != null && parent != tree.getModel().getRoot()) {
