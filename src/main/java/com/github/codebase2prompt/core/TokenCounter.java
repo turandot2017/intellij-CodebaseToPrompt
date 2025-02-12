@@ -22,28 +22,30 @@ public class TokenCounter {
         if (text.isEmpty()) {
             return 0;
         }
+        // 对于大的内容, 计算 tokens 比较慢(正则慢), 减化处理
+        return text.length();
 
-        int totalTokens = 0;
-
-        Matcher wordMatcher = WORD_PATTERN.matcher(text);
-        Matcher chineseMatcher = CHINESE_PATTERN.matcher(text);
-
-        while (wordMatcher.find()) {
-            String match = wordMatcher.group();
-            // 英文单词和数字按照长度估算
-            if (match.matches("[a-zA-Z0-9]+")) {
-                totalTokens += Math.max(1, (int) Math.ceil(match.length() / 4.0));
-            } else {
-                // 标点符号算作一个 token
-                totalTokens++;
-            }
-        }
-
-        while (chineseMatcher.find()) {
-            // 中文字符算作两个 token
-            totalTokens += 2;
-        }
-
-        return totalTokens;
+        // int totalTokens = 0;
+        //
+        // Matcher wordMatcher = WORD_PATTERN.matcher(text);
+        // Matcher chineseMatcher = CHINESE_PATTERN.matcher(text);
+        //
+        // while (wordMatcher.find()) {
+        //     String match = wordMatcher.group();
+        //     // 英文单词和数字按照长度估算
+        //     if (match.matches("[a-zA-Z0-9]+")) {
+        //         totalTokens += Math.max(1, (int) Math.ceil(match.length() / 4.0));
+        //     } else {
+        //         // 标点符号算作一个 token
+        //         totalTokens++;
+        //     }
+        // }
+        //
+        // while (chineseMatcher.find()) {
+        //     // 中文字符算作两个 token
+        //     totalTokens += 2;
+        // }
+        //
+        // return totalTokens;
     }
 }
